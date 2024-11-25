@@ -1,0 +1,9 @@
+{
+    "domain": "actron_neo",
+    "name": "Actron Neo",
+    "version": "1.0.0",
+    "documentation": "https://github.com/kclif9/actron-neo",
+    "dependencies": [],
+    "requirements": ["actron-neo==1.0.0"],
+    "codeowners": ["@kclif9"]
+  }  
