@@ -1,4 +1,4 @@
-"""Constants used by Actron Neo integration."""
+"""Constants used by Actron Air Neo integration."""
 
-DOMAIN = "actron_neo"
+DOMAIN = "actronair_neo"
 PLATFORMS = ["climate", "sensor", "switch"]

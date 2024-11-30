@@ -1,4 +1,4 @@
-"""Climate platform for Actron Neo integration."""
+"""Climate platform for Actron Air Neo integration."""
 
 from typing import Any
 
@@ -30,7 +30,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Actron Neo climate entities."""
+    """Set up Actron Air Neo climate entities."""
     # Get the API and coordinator from the integration
     data = hass.data[DOMAIN][entry.entry_id]
     api = data["api"]
@@ -43,12 +43,12 @@ async def async_setup_entry(
 
 
 class ActronSystemClimate(ClimateEntity):
-    """Representation of the Actron Neo system."""
+    """Representation of the Actron Air Neo system."""
 
     def __init__(
         self, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, serial_number: str
     ) -> None:
-        """Initialise a Actron Neo unit."""
+        """Initialise a Actron Air Neo unit."""
         super().__init__()
         self._coordinator = coordinator
         self._api = api
@@ -175,10 +175,10 @@ class ActronSystemClimate(ClimateEntity):
 
 
 class ActronZoneClimate(ClimateEntity):
-    """Representation of an Actron Neo zone."""
+    """Representation of an Actron Air Neo zone."""
 
     def __init__(self, coordinator, api, serial_number, zone_id, zone_name) -> None:
-        """Initialize an Actron Neo zone climate entity."""
+        """Initialize an Actron Air Neo zone climate entity."""
         super().__init__()  # Ensure parent class is initialized
         self._coordinator = coordinator
         self._api = api

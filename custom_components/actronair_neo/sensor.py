@@ -1,4 +1,4 @@
-"""Sensor platform for Actron Neo integration."""
+"""Sensor platform for Actron Air Neo integration."""
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,7 +15,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ):
-    """Set up Actron Neo sensors."""
+    """Set up Actron Air Neo sensors."""
     data = hass.data[DOMAIN][entry.entry_id]
     api = data["api"]
     serial_number = data["serial_number"]
@@ -178,7 +178,7 @@ class AirconDevice:
 
 
 class ActronZone:
-    """Representation of an Actron Zone."""
+    """Representation of an Actron Air Zone."""
 
     def __init__(self, zone_number, name) -> None:
         """Initialize the zone device."""
@@ -208,7 +208,7 @@ class ActronZone:
 
 
 class ActronZoneDevice:
-    """Representation of an Actron Zone Device."""
+    """Representation of an Actron Air Zone Device."""
 
     def __init__(
         self,
@@ -247,7 +247,7 @@ class ActronZoneDevice:
 
 
 class BaseZoneSensor(CoordinatorEntity, Entity):
-    """Base class for Actron Neo sensors."""
+    """Base class for Actron Air Neo sensors."""
 
     def __init__(
         self, coordinator, zone_device, name, state_key, unit_of_measurement=None
@@ -293,7 +293,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
 
 
 class ZonePostionSensor(BaseZoneSensor):
-    """Position sensor for Actron Neo zone."""
+    """Position sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, zone_device) -> None:
         """Initialize the position sensor."""
@@ -301,7 +301,7 @@ class ZonePostionSensor(BaseZoneSensor):
 
 
 class ZoneTemperatureSensor(BaseZoneSensor):
-    """Temperature sensor for Actron Neo zone."""
+    """Temperature sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, zone_device) -> None:
         """Initialize the temperature sensor."""
@@ -309,7 +309,7 @@ class ZoneTemperatureSensor(BaseZoneSensor):
 
 
 class ZoneHumiditySensor(BaseZoneSensor):
-    """Humidity sensor for Actron Neo zone."""
+    """Humidity sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, zone_device) -> None:
         """Initialize the humidity sensor."""
@@ -317,7 +317,7 @@ class ZoneHumiditySensor(BaseZoneSensor):
 
 
 class BasePeripheralSensor(CoordinatorEntity, Entity):
-    """Base class for Actron Neo sensors."""
+    """Base class for Actron Air Neo sensors."""
 
     def __init__(
         self, coordinator, zone_device, name, path, key, unit_of_measurement=None
@@ -368,7 +368,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
 
 
 class ZoneSensorBatterySensor(BasePeripheralSensor):
-    """Battery sensor for Actron Neo zone."""
+    """Battery sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, zone_device) -> None:
         """Initialize the battery sensor."""
@@ -382,7 +382,7 @@ class ZoneSensorBatterySensor(BasePeripheralSensor):
 
 
 class ZoneSensorTemperatureSensor(BasePeripheralSensor):
-    """Temperature sensor for Actron Neo zone."""
+    """Temperature sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, zone_device) -> None:
         """Initialize the temperature sensor."""
@@ -396,7 +396,7 @@ class ZoneSensorTemperatureSensor(BasePeripheralSensor):
 
 
 class ZoneSensorHumiditySensor(BasePeripheralSensor):
-    """Humidity sensor for Actron Neo zone."""
+    """Humidity sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, zone_device) -> None:
         """Initialize the humidity sensor."""

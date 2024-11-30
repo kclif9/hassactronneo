@@ -12,11 +12,11 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("Config flow for Actron Neo loaded")
+_LOGGER.debug("Config flow for Actron Air Neo loaded")
 
 
 class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Actron Neo."""
+    """Handle a config flow for Actron Air Neo."""
 
     VERSION = 1
 

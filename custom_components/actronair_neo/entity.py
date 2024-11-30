@@ -24,7 +24,7 @@ class ActronNeoDiagnosticSensor(CoordinatorEntity, Entity):
     @property
     def name(self) -> str:
         """Set the name of the diagnostic sensor."""
-        return f"Actron Neo {self._name}"
+        return f"Actron Air Neo {self._name}"
 
     @property
     def unique_id(self) -> str:

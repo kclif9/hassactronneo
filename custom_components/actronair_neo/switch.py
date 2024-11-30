@@ -24,14 +24,14 @@ async def async_setup_entry(
 
 
 class ActronNeoContinuousFanSwitch(SwitchEntity):
-    """Representation of the Actron Neo continuous fan switch."""
+    """Representation of the Actron Air Neo continuous fan switch."""
 
     def __init__(self, api, serial_number) -> None:
         """Initialize the continuous fan switch."""
         self._api = api
         self._serial_number = serial_number
         self._is_on = None
-        self._name = "Actron Neo Continuous Fan"
+        self._name = "Actron Air Neo Continuous Fan"
         self._fan_mode = None
 
     @property

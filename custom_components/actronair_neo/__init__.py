@@ -1,4 +1,4 @@
-"""Actron Neo climate integration."""
+"""Actron Air Neo climate integration."""
 
 from datetime import timedelta
 import logging
@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Actron Neo integration from a config entry."""
+    """Set up Actron Air Neo integration from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
     # Retrieve stored access_token and serial_number from the config entry
