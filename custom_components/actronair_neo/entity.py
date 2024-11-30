@@ -1,17 +1,21 @@
 """Sensor platform for Actron Neo integration."""
 
-
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from .device import ACUnit
 
 
 class BaseSensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 
     def __init__(
-        self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement=None
+        self,
+        coordinator,
+        ac_unit,
+        name,
+        path,
+        key,
+        device_info,
+        unit_of_measurement=None,
     ) -> None:
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
@@ -30,8 +34,7 @@ class BaseSensor(CoordinatorEntity, Entity):
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        ac_unit_entity_id = self._ac_unit.unique_id
-        return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
+        return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
 
     @property
     def state(self):
@@ -58,32 +61,24 @@ class BaseSensor(CoordinatorEntity, Entity):
 class EntitySensor(BaseSensor):
     """Entity sensor inheriting BaseSensor."""
 
-    def __init__(self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement) -> None:
+    def __init__(
+        self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
+    ) -> None:
         """Initialize the humidity sensor."""
         super().__init__(
-            coordinator,
-            ac_unit,
-            name,
-            path,
-            key,
-            device_info,
-            unit_of_measurement
+            coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
         )
 
 
 class DiagnosticSensor(BaseSensor):
     """Diagnostic sensor inheriting BaseSensor."""
 
-    def __init__(self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement) -> None:
+    def __init__(
+        self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
+    ) -> None:
         """Initialize the humidity sensor."""
         super().__init__(
-            coordinator,
-            ac_unit,
-            name,
-            path,
-            key,
-            device_info,
-            unit_of_measurement
+            coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
         )
 
     @property

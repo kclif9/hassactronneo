@@ -7,8 +7,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .device import ACUnit, ACZone, ZonePeripheral
+from .device import ACZone, ZonePeripheral
 from .entity import EntitySensor, DiagnosticSensor
+from .switch import ZoneSwitch
 
 
 async def async_setup_entry(
@@ -28,8 +29,22 @@ async def async_setup_entry(
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
-        (EntitySensor, ac_unit, "Clean Filter", ["lastKnownState", "Alerts"], "CleanFilter", None),
-        (EntitySensor, ac_unit, "Defrost Mode", ["lastKnownState", "Alerts"], "Defrosting", None),
+        (
+            EntitySensor,
+            ac_unit,
+            "Clean Filter",
+            ["lastKnownState", "Alerts"],
+            "CleanFilter",
+            None,
+        ),
+        (
+            EntitySensor,
+            ac_unit,
+            "Defrost Mode",
+            ["lastKnownState", "Alerts"],
+            "Defrosting",
+            None,
+        ),
         (
             DiagnosticSensor,
             ac_unit,
@@ -46,8 +61,22 @@ async def async_setup_entry(
             "CompressorLiveTemperature",
             "°C",
         ),
-        (DiagnosticSensor, ac_unit, "Compressor Mode", ["lastKnownState", "LiveAircon"], "CompressorMode", None),
-        (EntitySensor, ac_unit, "System On", ["lastKnownState", "LiveAircon"], "SystemOn", None),
+        (
+            DiagnosticSensor,
+            ac_unit,
+            "Compressor Mode",
+            ["lastKnownState", "LiveAircon"],
+            "CompressorMode",
+            None,
+        ),
+        (
+            EntitySensor,
+            ac_unit,
+            "System On",
+            ["lastKnownState", "LiveAircon"],
+            "SystemOn",
+            None,
+        ),
         (
             DiagnosticSensor,
             ac_unit,
@@ -72,7 +101,14 @@ async def async_setup_entry(
             "LiveOutdoorTemp_oC",
             "°C",
         ),
-        (EntitySensor, ac_unit, "Humidity", ["lastKnownState", "MasterInfo"], "LiveHumidity_pc", "%"),
+        (
+            EntitySensor,
+            ac_unit,
+            "Humidity",
+            ["lastKnownState", "MasterInfo"],
+            "LiveHumidity_pc",
+            "%",
+        ),
     ]
 
     # Create diagnostic sensors
@@ -105,6 +141,7 @@ async def async_setup_entry(
             ac_zone = ACZone(ac_unit, zone_number, zone_name)
             ac_zones.append(ac_zone)
             zone_sensors.extend(create_zone_sensors(coordinator, ac_zone))
+            zone_sensors.extend(ZoneSwitch(api, coordinator, serial_number, ac_zone))
 
     # Fetch Peripherals
     peripherals = (
@@ -247,7 +284,9 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     @property
     def unique_id(self):
         """Return a unique ID for the sensor."""
-        return f"{self._zone_peripheral.unique_id}_{self._name.lower().replace(' ', '_')}"
+        return (
+            f"{self._zone_peripheral.unique_id}_{self._name.lower().replace(' ', '_')}"
+        )
 
     @property
     def device_info(self):

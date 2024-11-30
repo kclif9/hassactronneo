@@ -55,7 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Create the aircon device
     ac_unit = ACUnit(serial_number, system, status)
-    
+
     # Store the coordinator in hass.data
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
     hass.data[DOMAIN][entry.entry_id]["ac_unit"] = ac_unit
