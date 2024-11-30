@@ -76,14 +76,14 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class ActronNeoOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options for Actron Neo."""
+    """Handle options for Actron Air Neo."""
 
     def __init__(self, config_entry) -> None:
         """Initialise options flow handler."""
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None) -> config_entries.ConfigFlowResult:
-        """Manage the Actron Neo options."""
+        """Manage the Actron Air Neo options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
