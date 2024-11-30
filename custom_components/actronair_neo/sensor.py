@@ -141,7 +141,6 @@ async def async_setup_entry(
             ac_zone = ACZone(ac_unit, zone_number, zone_name)
             ac_zones.append(ac_zone)
             zone_sensors.extend(create_zone_sensors(coordinator, ac_zone))
-            zone_sensors.append(ZoneSwitch(api, coordinator, serial_number, ac_zone))
 
     # Fetch Peripherals
     peripherals = (

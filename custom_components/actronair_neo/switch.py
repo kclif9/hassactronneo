@@ -7,6 +7,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .device import ACZone
 
 
 async def async_setup_entry(
@@ -22,8 +23,22 @@ async def async_setup_entry(
     serial_number = entry.data.get("serial_number")
     ac_unit = data["ac_unit"]
 
+    # Fetch the status and create ZoneSwitches
+    status = await api.get_ac_status(serial_number)
+    zones = status.get("lastKnownState", {}).get("RemoteZoneInfo", [])
+    entities = []
+
+    for zone_number, zone in enumerate(zones, start=1):
+        if zone["NV_Exists"]:
+            zone_name = zone["NV_Title"]
+            ac_zone = ACZone(ac_unit, zone_number, zone_name)
+            entities.append(ZoneSwitch(api, coordinator, serial_number, ac_zone))
+
     # Create a switch for the continuous fan
-    async_add_entities([ContinuousFanSwitch(api, coordinator, serial_number, ac_unit)])
+    entities.append(ContinuousFanSwitch(api, coordinator, serial_number, ac_unit))
+
+    # Add all switches
+    async_add_entities(entities)
 
 
 class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
@@ -120,7 +135,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         self._api = api
         self._ac_zone = ac_zone
         self._serial_number = serial_number
-        self._zone_number = ac_zone.zone_number
+        self._zone_number = ac_zone.zone_number()
         self._name = f"Zone {self._zone_number} Enabled"
 
     @property
