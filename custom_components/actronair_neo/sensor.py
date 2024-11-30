@@ -24,7 +24,7 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     # Obtain AC Units
-    system = await api.get_ac_systems()[0]
+    system = await api.get_ac_systems()
     status = await api.get_ac_status(serial_number)
 
     # Create the aircon device
@@ -178,6 +178,7 @@ class ACUnit:
         """Return a unique ID."""
         return f"actronair_neo_{self._serial_number}"
     
+    @property
     def manufacturer(self) -> str:
         """Return the manufacturer name"""
         return self._manufacturer
@@ -207,7 +208,7 @@ class ACZone:
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        ac_unit_entity_id = self._ac_unit.unique_id()
+        ac_unit_entity_id = self._ac_unit.unique_id
         return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
 
     def zone_number(self) -> int:
@@ -259,7 +260,7 @@ class ZonePeripheral:
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        ac_unit_entity_id = self._ac_unit.unique_id()
+        ac_unit_entity_id = self._ac_unit.unique_id
         return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
 
 
@@ -392,6 +393,7 @@ class PeripheralBatterySensor(BasePeripheralSensor):
         super().__init__(
             coordinator,
             zone_peripheral,
+            "Battery",
             [],
             "RemainingBatteryCapacity_pc",
             "%",
@@ -406,7 +408,8 @@ class PeripheralTemperatureSensor(BasePeripheralSensor):
         super().__init__(
             coordinator,
             zone_peripheral,
-            ["SHTC1"],
+            "Temperature",
+            ["SensorInputs", "SHTC1"],
             "Temperature_oC",
             "°C",
         )
@@ -420,7 +423,8 @@ class PeripheralHumiditySensor(BasePeripheralSensor):
         super().__init__(
             coordinator,
             zone_peripheral,
-            ["lastKnownState", "AirconSystem", "Peripherals", "SHTC1"],
+            "Humidity",
+            ["SensorInputs", "SHTC1"],
             "RelativeHumidity_pc",
             "%",
         )
