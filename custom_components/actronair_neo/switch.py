@@ -20,10 +20,10 @@ async def async_setup_entry(
     serial_number = entry.data.get("serial_number")
 
     # Create a switch for the continuous fan
-    async_add_entities([ActronNeoContinuousFanSwitch(api, serial_number)])
+    async_add_entities([ContinuousFanSwitch(api, serial_number)])
 
 
-class ActronNeoContinuousFanSwitch(SwitchEntity):
+class ContinuousFanSwitch(SwitchEntity):
     """Representation of the Actron Air Neo continuous fan switch."""
 
     def __init__(self, api, serial_number) -> None:

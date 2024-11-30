@@ -7,7 +7,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
-class ActronNeoDiagnosticSensor(CoordinatorEntity, Entity):
+class DiagnosticSensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 
     def __init__(

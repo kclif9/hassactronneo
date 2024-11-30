@@ -7,7 +7,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .entity import ActronNeoDiagnosticSensor
+from .entity import DiagnosticSensor
 
 
 async def async_setup_entry(
@@ -23,11 +23,12 @@ async def async_setup_entry(
     # Setup the coordinator
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    # Obtain status data
+    # Obtain AC Units
+    system = await api.get_ac_systems()[0]
     status = await api.get_ac_status(serial_number)
 
     # Create the aircon device
-    aircon_device = AirconDevice(serial_number, status)
+    ac_unit = ACUnit(serial_number, system, status)
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
@@ -70,8 +71,8 @@ async def async_setup_entry(
 
     # Create diagnostic sensors
     diagnostic_sensors = [
-        ActronNeoDiagnosticSensor(
-            coordinator, name, path, key, aircon_device.device_info, unit
+        DiagnosticSensor(
+            coordinator, name, path, key, ac_unit.device_info, unit
         )
         for name, path, key, unit in diagnostic_configs
     ]
@@ -80,16 +81,16 @@ async def async_setup_entry(
     zones = status.get("lastKnownState", {}).get("RemoteZoneInfo", [])
 
     zone_sensors = []
-    zone_devices = []
+    ac_zones = []
 
-    # Create zone sensors
+    # Create zones & sensors
     for zone_number, zone in enumerate(zones, start=1):
         if zone["NV_Exists"]:
             # Create zone device
             zone_name = zone["NV_Title"]
-            zone_device = ActronZone(zone_number, zone_name)
-            zone_devices.append(zone_device)
-            zone_sensors.extend(create_zone_sensors(coordinator, zone_device))
+            ac_zone = ACZone(ac_unit, zone_number, zone_name)
+            ac_zones.append(ac_zone)
+            zone_sensors.extend(create_zone_sensors(coordinator, ac_zone))
 
     # Fetch Peripherals
     peripherals = (
@@ -106,8 +107,9 @@ async def async_setup_entry(
         firmware = peripheral.get("Firmware", {})
         installed_version = firmware.get("InstalledVersion", {})
         software_version = installed_version.get("NRF52", {})
-        zone_assignment = zone_devices[zone_id - 1]
-        zone_device = ActronZoneDevice(
+        zone_assignment = ac_zones[zone_id - 1]
+        zone_peripheral = ZonePeripheral(
+            ac_unit,
             logical_address,
             zone_serial,
             mac_address,
@@ -115,39 +117,39 @@ async def async_setup_entry(
             device_type,
             software_version,
         )
-        zone_sensors.extend(create_peripheral_sensors(coordinator, zone_device))
+        zone_sensors.extend(create_peripheral_sensors(coordinator, zone_peripheral))
 
     # Add all sensors
     async_add_entities(diagnostic_sensors + zone_sensors)
 
 
-def create_zone_sensors(coordinator, zone_device):
+def create_zone_sensors(coordinator, ac_zone):
     """Create all sensors for a given zone device."""
     return [
-        ZonePostionSensor(coordinator, zone_device),
-        ZoneTemperatureSensor(coordinator, zone_device),
-        ZoneHumiditySensor(coordinator, zone_device),
+        ZonePostionSensor(coordinator, ac_zone),
+        ZoneTemperatureSensor(coordinator, ac_zone),
+        ZoneHumiditySensor(coordinator, ac_zone),
     ]
 
 
-def create_peripheral_sensors(coordinator, zone_device):
+def create_peripheral_sensors(coordinator, zone_peripheral):
     """Create all sensors for a given peripheral zone device."""
     return [
-        ZoneSensorBatterySensor(coordinator, zone_device),
-        ZoneSensorTemperatureSensor(coordinator, zone_device),
-        ZoneSensorHumiditySensor(coordinator, zone_device),
+        PeripheralBatterySensor(coordinator, zone_peripheral),
+        PeripheralTemperatureSensor(coordinator, zone_peripheral),
+        PeripheralHumiditySensor(coordinator, zone_peripheral),
     ]
 
 
-class AirconDevice:
+class ACUnit:
     """Representation of an Actron Neo Air Conditioner device."""
 
-    def __init__(self, serial_number, status) -> None:
+    def __init__(self, serial_number, system, status) -> None:
         """Initialize the air conditioner device."""
         self._serial_number = serial_number
         self._status = status
         self._manufacturer = "Actron Air"
-        self._name = "Actron Air Neo Controller"
+        self._name = system["_embedded"]["ac-system"][0]["description"]
         self._firmware_version = (
             self._status.get("lastKnownState", {})
             .get("AirconSystem", {})
@@ -174,14 +176,19 @@ class AirconDevice:
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"actron_neo_zone_{self._name.replace(' ', '_').lower()}"
+        return f"actronair_neo_{self._serial_number}"
+    
+    def manufacturer(self) -> str:
+        """Return the manufacturer name"""
+        return self._manufacturer
 
 
-class ActronZone:
-    """Representation of an Actron Air Zone."""
+class ACZone:
+    """Representation of an Air Conditioner Zone."""
 
-    def __init__(self, zone_number, name) -> None:
+    def __init__(self, ac_unit, zone_number, name) -> None:
         """Initialize the zone device."""
+        self._ac_unit = ac_unit
         self._zone_number = zone_number
         self._serial = f"zone_{self._zone_number}"
         self._device_type = "Zone"
@@ -193,25 +200,27 @@ class ActronZone:
         return {
             "identifiers": {(DOMAIN, self._zone_number)},
             "name": self._name,
-            "manufacturer": "Actron",
+            "manufacturer": self._ac_unit.manufacturer,
             "model": self._device_type,
         }
 
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"actron_neo_zone_{self._name.replace(' ', '_').lower()}"
+        ac_unit_entity_id = self._ac_unit.unique_id()
+        return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
 
     def zone_number(self) -> int:
         """Return the zone number."""
         return self._zone_number
 
 
-class ActronZoneDevice:
-    """Representation of an Actron Air Zone Device."""
+class ZonePeripheral:
+    """Representation of an Actron Air Zone Peripheral."""
 
     def __init__(
         self,
+        ac_unit,
         logical_address,
         serial,
         mac_address,
@@ -220,20 +229,22 @@ class ActronZoneDevice:
         software_version,
     ) -> None:
         """Initialize the zone device."""
+        self._ac_unit = ac_unit
         self._logical_address = logical_address
         self._serial = serial
         self._mac_address = mac_address
         self._zone_assignment = zone_assignment
         self._device_type = device_type
         self._software_version = software_version
+        self._name = f"{self._device_type} {self._logical_address}"
 
     @property
     def device_info(self):
         """Return device information."""
         return {
             "identifiers": {(DOMAIN, self._serial)},
-            "name": f"{self._device_type} {self._logical_address}",
-            "manufacturer": "Actron",
+            "name": self._name,
+            "manufacturer": self._ac_unit.manufacturer,
             "model": self._device_type,
             "connections": {("mac", self._mac_address)},  # MAC address
             "serial_number": self._serial,
@@ -245,17 +256,23 @@ class ActronZoneDevice:
         """Return the logical address."""
         return self._logical_address
 
+    @property
+    def unique_id(self) -> str:
+        """Return a unique ID."""
+        ac_unit_entity_id = self._ac_unit.unique_id()
+        return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
+
 
 class BaseZoneSensor(CoordinatorEntity, Entity):
     """Base class for Actron Air Neo sensors."""
 
     def __init__(
-        self, coordinator, zone_device, name, state_key, unit_of_measurement=None
+        self, coordinator, ac_zone, name, state_key, unit_of_measurement=None
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._zone_device = zone_device
-        self._zone_number = zone_device.zone_number()
+        self._ac_zone = ac_zone
+        self._zone_number = ac_zone.zone_number()
         self._name = name
         self._state_key = state_key
         self._unit_of_measurement = unit_of_measurement
@@ -263,17 +280,17 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._zone_device.device_info['name']} {self._name}"
+        return f"{self._ac_zone.device_info['name']} {self._name}"
 
     @property
     def unique_id(self):
         """Return a unique ID for the sensor."""
-        return f"{self._zone_device.device_info['identifiers']}_{self._name.lower().replace(' ', '_')}"
+        return f"{self._ac_zone.unique_id}_{self._name.lower().replace(' ', '_')}"
 
     @property
     def device_info(self):
         """Return the device information."""
-        return self._zone_device.device_info
+        return self._ac_zone.device_info
 
     @property
     def state(self):
@@ -295,36 +312,36 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
 class ZonePostionSensor(BaseZoneSensor):
     """Position sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator, zone_device) -> None:
+    def __init__(self, coordinator, ac_zone) -> None:
         """Initialize the position sensor."""
-        super().__init__(coordinator, zone_device, "Position", "ZonePosition", "%")
+        super().__init__(coordinator, ac_zone, "Position", "ZonePosition", "%")
 
 
 class ZoneTemperatureSensor(BaseZoneSensor):
     """Temperature sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator, zone_device) -> None:
+    def __init__(self, coordinator, ac_zone) -> None:
         """Initialize the temperature sensor."""
-        super().__init__(coordinator, zone_device, "Temperature", "LiveTemp_oC", "°C")
+        super().__init__(coordinator, ac_zone, "Temperature", "LiveTemp_oC", "°C")
 
 
 class ZoneHumiditySensor(BaseZoneSensor):
     """Humidity sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator, zone_device) -> None:
+    def __init__(self, coordinator, ac_zone) -> None:
         """Initialize the humidity sensor."""
-        super().__init__(coordinator, zone_device, "Humidity", "LiveHumidity_pc", "%")
+        super().__init__(coordinator, ac_zone, "Humidity", "LiveHumidity_pc", "%")
 
 
 class BasePeripheralSensor(CoordinatorEntity, Entity):
     """Base class for Actron Air Neo sensors."""
 
     def __init__(
-        self, coordinator, zone_device, name, path, key, unit_of_measurement=None
+        self, coordinator, zone_peripheral, name, path, key, unit_of_measurement=None
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._zone_device = zone_device
+        self._zone_peripheral = zone_peripheral
         self._name = name
         self._path = path if isinstance(path, list) else [path]  # Ensure path is a list
         self._key = key
@@ -333,17 +350,17 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._zone_device.device_info['name']} {self._name}"
+        return f"{self._zone_peripheral.device_info['name']} {self._name}"
 
     @property
     def unique_id(self):
         """Return a unique ID for the sensor."""
-        return f"{self._zone_device.device_info['identifiers']}_{self._name.lower().replace(' ', '_')}"
+        return f"{self._zone_peripheral.unique_id}_{self._name.lower().replace(' ', '_')}"
 
     @property
     def device_info(self):
         """Return the device information."""
-        return self._zone_device.device_info
+        return self._zone_peripheral.device_info
 
     @property
     def state(self):
@@ -355,7 +372,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
             .get("Peripherals", [])
         )
         for peripheral in data_source:
-            if peripheral["LogicalAddress"] == self._zone_device.logical_address():
+            if peripheral["LogicalAddress"] == self._zone_peripheral.logical_address():
                 for key in self._path:
                     peripheral = peripheral.get(key, {})
                 return peripheral.get(self._key, None)
@@ -367,42 +384,42 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         return self._unit_of_measurement
 
 
-class ZoneSensorBatterySensor(BasePeripheralSensor):
+class PeripheralBatterySensor(BasePeripheralSensor):
     """Battery sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator, zone_device) -> None:
+    def __init__(self, coordinator, zone_peripheral) -> None:
         """Initialize the battery sensor."""
         super().__init__(
             coordinator,
-            zone_device,
+            zone_peripheral,
             [],
             "RemainingBatteryCapacity_pc",
             "%",
         )
 
 
-class ZoneSensorTemperatureSensor(BasePeripheralSensor):
+class PeripheralTemperatureSensor(BasePeripheralSensor):
     """Temperature sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator, zone_device) -> None:
+    def __init__(self, coordinator, zone_peripheral) -> None:
         """Initialize the temperature sensor."""
         super().__init__(
             coordinator,
-            zone_device,
+            zone_peripheral,
             ["SHTC1"],
             "Temperature_oC",
             "°C",
         )
 
 
-class ZoneSensorHumiditySensor(BasePeripheralSensor):
+class PeripheralHumiditySensor(BasePeripheralSensor):
     """Humidity sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator, zone_device) -> None:
+    def __init__(self, coordinator, zone_peripheral) -> None:
         """Initialize the humidity sensor."""
         super().__init__(
             coordinator,
-            zone_device,
+            zone_peripheral,
             ["lastKnownState", "AirconSystem", "Peripherals", "SHTC1"],
             "RelativeHumidity_pc",
             "%",
