@@ -32,49 +32,54 @@ async def async_setup_entry(
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
-        ("Clean Filter", ["lastKnownState", "Alerts"], "CleanFilter", None),
-        ("Defrost Mode", ["lastKnownState", "Alerts"], "Defrosting", None),
+        (ac_unit, "Clean Filter", ["lastKnownState", "Alerts"], "CleanFilter", None),
+        (ac_unit, "Defrost Mode", ["lastKnownState", "Alerts"], "Defrosting", None),
         (
+            ac_unit,
             "Compressor Chasing Temperature",
             ["lastKnownState", "LiveAircon"],
             "CompressorChasingTemperature",
             "°C",
         ),
         (
+            ac_unit,
             "Compressor Live Temperature",
             ["lastKnownState", "LiveAircon"],
             "CompressorLiveTemperature",
             "°C",
         ),
-        ("Compressor Mode", ["lastKnownState", "LiveAircon"], "CompressorMode", None),
-        ("System On", ["lastKnownState", "LiveAircon"], "SystemOn", None),
+        (ac_unit, "Compressor Mode", ["lastKnownState", "LiveAircon"], "CompressorMode", None),
+        (ac_unit, "System On", ["lastKnownState", "LiveAircon"], "SystemOn", None),
         (
+            ac_unit,
             "Compressor Speed",
             ["lastKnownState", "LiveAircon", "OutdoorUnit"],
             "CompSpeed",
             "rpm",
         ),
         (
+            ac_unit,
             "Compressor Power",
             ["lastKnownState", "LiveAircon", "OutdoorUnit"],
             "CompPower",
             "W",
         ),
         (
+            ac_unit,
             "Outdoor Temperature",
             ["lastKnownState", "MasterInfo"],
             "LiveOutdoorTemp_oC",
             "°C",
         ),
-        ("Humidity", ["lastKnownState", "MasterInfo"], "LiveHumidity_pc", "%"),
+        (ac_unit, "Humidity", ["lastKnownState", "MasterInfo"], "LiveHumidity_pc", "%"),
     ]
 
     # Create diagnostic sensors
     diagnostic_sensors = [
         DiagnosticSensor(
-            coordinator, name, path, key, ac_unit.device_info, unit
+            coordinator, ac_unit, name, path, key, ac_unit.device_info, unit
         )
-        for name, path, key, unit in diagnostic_configs
+        for ac_unit, name, path, key, unit in diagnostic_configs
     ]
 
     # Fetch Zones

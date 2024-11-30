@@ -11,10 +11,11 @@ class DiagnosticSensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 
     def __init__(
-        self, coordinator, name, path, key, device_info, unit_of_measurement=None
+        self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement=None
     ) -> None:
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
+        self._ac_unit = ac_unit
         self._name = name
         self._path = path if isinstance(path, list) else [path]  # Ensure path is a list
         self._key = key
@@ -24,12 +25,13 @@ class DiagnosticSensor(CoordinatorEntity, Entity):
     @property
     def name(self) -> str:
         """Set the name of the diagnostic sensor."""
-        return f"Actron Air Neo {self._name}"
+        return self._name
 
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"actron_neo_{self._name.replace(' ', '_').lower()}"
+        ac_unit_entity_id = self._ac_unit.unique_id
+        return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
 
     @property
     def state(self):
