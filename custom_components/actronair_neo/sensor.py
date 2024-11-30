@@ -7,7 +7,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .entity import DiagnosticSensor
+from .entity import EntitySensor, DiagnosticSensor
 
 
 async def async_setup_entry(
@@ -32,9 +32,10 @@ async def async_setup_entry(
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
-        (ac_unit, "Clean Filter", ["lastKnownState", "Alerts"], "CleanFilter", None),
-        (ac_unit, "Defrost Mode", ["lastKnownState", "Alerts"], "Defrosting", None),
+        (EntitySensor, ac_unit, "Clean Filter", ["lastKnownState", "Alerts"], "CleanFilter", None),
+        (EntitySensor, ac_unit, "Defrost Mode", ["lastKnownState", "Alerts"], "Defrosting", None),
         (
+            DiagnosticSensor,
             ac_unit,
             "Compressor Chasing Temperature",
             ["lastKnownState", "LiveAircon"],
@@ -42,15 +43,17 @@ async def async_setup_entry(
             "°C",
         ),
         (
+            DiagnosticSensor,
             ac_unit,
             "Compressor Live Temperature",
             ["lastKnownState", "LiveAircon"],
             "CompressorLiveTemperature",
             "°C",
         ),
-        (ac_unit, "Compressor Mode", ["lastKnownState", "LiveAircon"], "CompressorMode", None),
-        (ac_unit, "System On", ["lastKnownState", "LiveAircon"], "SystemOn", None),
+        (DiagnosticSensor, ac_unit, "Compressor Mode", ["lastKnownState", "LiveAircon"], "CompressorMode", None),
+        (EntitySensor, ac_unit, "System On", ["lastKnownState", "LiveAircon"], "SystemOn", None),
         (
+            DiagnosticSensor,
             ac_unit,
             "Compressor Speed",
             ["lastKnownState", "LiveAircon", "OutdoorUnit"],
@@ -58,6 +61,7 @@ async def async_setup_entry(
             "rpm",
         ),
         (
+            DiagnosticSensor,
             ac_unit,
             "Compressor Power",
             ["lastKnownState", "LiveAircon", "OutdoorUnit"],
@@ -65,22 +69,31 @@ async def async_setup_entry(
             "W",
         ),
         (
+            EntitySensor,
             ac_unit,
             "Outdoor Temperature",
             ["lastKnownState", "MasterInfo"],
             "LiveOutdoorTemp_oC",
             "°C",
         ),
-        (ac_unit, "Humidity", ["lastKnownState", "MasterInfo"], "LiveHumidity_pc", "%"),
+        (EntitySensor, ac_unit, "Humidity", ["lastKnownState", "MasterInfo"], "LiveHumidity_pc", "%"),
     ]
 
     # Create diagnostic sensors
-    diagnostic_sensors = [
-        DiagnosticSensor(
-            coordinator, ac_unit, name, path, key, ac_unit.device_info, unit
-        )
-        for ac_unit, name, path, key, unit in diagnostic_configs
-    ]
+    ac_unit_sensors = []
+    for sensor_type, ac_unit, name, path, key, unit in diagnostic_configs:
+        if sensor_type == DiagnosticSensor:
+            ac_unit_sensors.append(
+                DiagnosticSensor(
+                    coordinator, ac_unit, name, path, key, ac_unit.device_info, unit
+                )
+            )
+        elif sensor_type == EntitySensor:
+            ac_unit_sensors.append(
+                EntitySensor(
+                    coordinator, ac_unit, name, path, key, ac_unit.device_info, unit
+                )
+            )
 
     # Fetch Zones
     zones = status.get("lastKnownState", {}).get("RemoteZoneInfo", [])
@@ -125,7 +138,7 @@ async def async_setup_entry(
         zone_sensors.extend(create_peripheral_sensors(coordinator, zone_peripheral))
 
     # Add all sensors
-    async_add_entities(diagnostic_sensors + zone_sensors)
+    async_add_entities(ac_unit_sensors + zone_sensors)
 
 
 def create_zone_sensors(coordinator, ac_zone):

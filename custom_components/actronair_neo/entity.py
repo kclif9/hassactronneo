@@ -1,13 +1,11 @@
 """Sensor platform for Actron Neo integration."""
 
-from collections.abc import Mapping
-from typing import Any
 
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
-class DiagnosticSensor(CoordinatorEntity, Entity):
+class BaseSensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 
     def __init__(
@@ -53,3 +51,40 @@ class DiagnosticSensor(CoordinatorEntity, Entity):
     def device_info(self):
         """Return device information."""
         return self._device_info
+
+
+class EntitySensor(BaseSensor):
+    """Entity sensor inheriting BaseSensor."""
+
+    def __init__(self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement) -> None:
+        """Initialize the humidity sensor."""
+        super().__init__(
+            coordinator,
+            ac_unit,
+            name,
+            path,
+            key,
+            device_info,
+            unit_of_measurement
+        )
+
+
+class DiagnosticSensor(BaseSensor):
+    """Diagnostic sensor inheriting BaseSensor."""
+
+    def __init__(self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement) -> None:
+        """Initialize the humidity sensor."""
+        super().__init__(
+            coordinator,
+            ac_unit,
+            name,
+            path,
+            key,
+            device_info,
+            unit_of_measurement
+        )
+
+    @property
+    def entity_category(self) -> EntityCategory:
+        """Return the entity category as diagnostic."""
+        return EntityCategory.DIAGNOSTIC
