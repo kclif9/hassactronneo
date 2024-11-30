@@ -141,14 +141,6 @@ class ActronSystemClimate(ClimateEntity):
         self._target_temp = temp
         self.async_write_ha_state()
 
-    async def async_set_fan_mode(self, fan_mode: str) -> None:
-        """Set the fan mode."""
-        await self._api.set_fan_mode(
-            self._serial_number, fan_mode=fan_mode, continuous=self._continuous
-        )
-        self._fan_mode = fan_mode
-        self.async_write_ha_state()
-
     async def async_turn_on_continuous(self, continuous: bool) -> None:
         """Set the continuous mode."""
         self._continuous = continuous
