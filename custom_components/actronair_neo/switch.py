@@ -17,22 +17,26 @@ async def async_setup_entry(
     # Extract API and coordinator from hass.data
     data = hass.data[DOMAIN][entry.entry_id]
     api = data["api"]  # ActronNeoAPI instance
+    coordinator = data["coordinator"]
     serial_number = entry.data.get("serial_number")
+    ac_unit_device_info = hass.data[DOMAIN][entry.entry_id]["device_info"]
 
     # Create a switch for the continuous fan
-    async_add_entities([ContinuousFanSwitch(api, serial_number)])
+    async_add_entities([ContinuousFanSwitch(api, coordinator, serial_number, ac_unit_device_info)])
 
 
 class ContinuousFanSwitch(SwitchEntity):
     """Representation of the Actron Air Neo continuous fan switch."""
 
-    def __init__(self, api, serial_number) -> None:
+    def __init__(self, api, coordinator, serial_number, device_info) -> None:
         """Initialize the continuous fan switch."""
+        super().__init__(coordinator)
         self._api = api
         self._serial_number = serial_number
         self._is_on = None
         self._name = "Actron Air Neo Continuous Fan"
         self._fan_mode = None
+        self._device_info = device_info
 
     @property
     def name(self) -> str:
@@ -75,7 +79,8 @@ class ContinuousFanSwitch(SwitchEntity):
 
     async def async_update(self) -> None:
         """Fetch the latest state of the continuous fan."""
-        status = await self._api.get_ac_status(self._serial_number)
+        await self.coordinator.async_request_refresh()  # Use the coordinator to fetch updated data
+        status = self.coordinator.data
         fan_mode = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})

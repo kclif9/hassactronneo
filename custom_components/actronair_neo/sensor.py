@@ -29,6 +29,7 @@ async def async_setup_entry(
 
     # Create the aircon device
     ac_unit = ACUnit(serial_number, system, status)
+    hass.data[DOMAIN][entry.entry_id]["device_info"] = ac_unit.device_info
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
