@@ -18,10 +18,8 @@ async def async_setup_entry(
     """Set up Actron Air Neo sensors."""
     data = hass.data[DOMAIN][entry.entry_id]
     api = data["api"]
+    coordinator = data["coordinator"]
     serial_number = data["serial_number"]
-
-    # Setup the coordinator
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     # Obtain AC Units
     system = await api.get_ac_systems()
@@ -29,7 +27,7 @@ async def async_setup_entry(
 
     # Create the aircon device
     ac_unit = ACUnit(serial_number, system, status)
-    hass.data[DOMAIN][entry.entry_id]["device_info"] = ac_unit.device_info
+    data["device_info"] = ac_unit.device_info
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
