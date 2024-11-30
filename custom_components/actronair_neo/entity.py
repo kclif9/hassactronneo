@@ -4,6 +4,8 @@
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .device import ACUnit
+
 
 class BaseSensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""

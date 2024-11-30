@@ -7,8 +7,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .device import ACUnit, ACZone, ZonePeripheral
 from .entity import EntitySensor, DiagnosticSensor
-from .switch import ContinuousFanSwitch
 
 
 async def async_setup_entry(
@@ -21,16 +21,10 @@ async def async_setup_entry(
     api = data["api"]
     coordinator = data["coordinator"]
     serial_number = data["serial_number"]
+    ac_unit = data["ac_unit"]
 
     # Obtain AC Units
-    system = await api.get_ac_systems()
     status = await api.get_ac_status(serial_number)
-
-    # Create the aircon device
-    ac_unit = ACUnit(serial_number, system, status)
-    
-    # Setup continuous fan switch
-    async_add_entities([ContinuousFanSwitch(api, coordinator, serial_number, ac_unit)])
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
@@ -159,129 +153,6 @@ def create_peripheral_sensors(coordinator, zone_peripheral):
         PeripheralTemperatureSensor(coordinator, zone_peripheral),
         PeripheralHumiditySensor(coordinator, zone_peripheral),
     ]
-
-
-class ACUnit:
-    """Representation of an Actron Neo Air Conditioner device."""
-
-    def __init__(self, serial_number, system, status) -> None:
-        """Initialize the air conditioner device."""
-        self._serial_number = serial_number
-        self._status = status
-        self._manufacturer = "Actron Air"
-        self._name = system["_embedded"]["ac-system"][0]["description"]
-        self._firmware_version = (
-            self._status.get("lastKnownState", {})
-            .get("AirconSystem", {})
-            .get("MasterWCFirmwareVersion", "Unknown")
-        )
-        self._model_name = (
-            self._status.get("lastKnownState", {})
-            .get("AirconSystem", {})
-            .get("MasterWCModel", "Unknown")
-        )
-
-    @property
-    def device_info(self):
-        """Return device information."""
-        return {
-            "identifiers": {(DOMAIN, self._serial_number)},
-            "name": self._name,
-            "manufacturer": self._manufacturer,
-            "model": self._model_name,
-            "sw_version": self._firmware_version,
-            "serial_number": self._serial_number,
-        }
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"actronair_neo_{self._serial_number}"
-    
-    @property
-    def manufacturer(self) -> str:
-        """Return the manufacturer name"""
-        return self._manufacturer
-
-
-class ACZone:
-    """Representation of an Air Conditioner Zone."""
-
-    def __init__(self, ac_unit, zone_number, name) -> None:
-        """Initialize the zone device."""
-        self._ac_unit = ac_unit
-        self._zone_number = zone_number
-        self._serial = f"zone_{self._zone_number}"
-        self._device_type = "Zone"
-        self._name = f"Zone {name}"
-
-    @property
-    def device_info(self):
-        """Return device information."""
-        return {
-            "identifiers": {(DOMAIN, self._zone_number)},
-            "name": self._name,
-            "manufacturer": self._ac_unit.manufacturer,
-            "model": self._device_type,
-        }
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        ac_unit_entity_id = self._ac_unit.unique_id
-        return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
-
-    def zone_number(self) -> int:
-        """Return the zone number."""
-        return self._zone_number
-
-
-class ZonePeripheral:
-    """Representation of an Actron Air Zone Peripheral."""
-
-    def __init__(
-        self,
-        ac_unit,
-        logical_address,
-        serial,
-        mac_address,
-        zone_assignment,
-        device_type,
-        software_version,
-    ) -> None:
-        """Initialize the zone device."""
-        self._ac_unit = ac_unit
-        self._logical_address = logical_address
-        self._serial = serial
-        self._mac_address = mac_address
-        self._zone_assignment = zone_assignment
-        self._device_type = device_type
-        self._software_version = software_version
-        self._name = f"{self._device_type} {self._logical_address}"
-
-    @property
-    def device_info(self):
-        """Return device information."""
-        return {
-            "identifiers": {(DOMAIN, self._serial)},
-            "name": self._name,
-            "manufacturer": self._ac_unit.manufacturer,
-            "model": self._device_type,
-            "connections": {("mac", self._mac_address)},  # MAC address
-            "serial_number": self._serial,
-            "sw_version": self._software_version,
-            "via_device": (DOMAIN, self._zone_assignment),
-        }
-
-    def logical_address(self) -> str:
-        """Return the logical address."""
-        return self._logical_address
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        ac_unit_entity_id = self._ac_unit.unique_id
-        return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
 
 
 class BaseZoneSensor(CoordinatorEntity, Entity):
