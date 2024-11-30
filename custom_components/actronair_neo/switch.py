@@ -1,45 +1,10 @@
 """Switch platform for Actron Neo integration."""
 
-import asyncio
-import logging
-
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up Actron Neo switches."""
-    # Extract API and coordinator from hass.data
-    data = hass.data[DOMAIN][entry.entry_id]
-    api = data["api"]  # ActronNeoAPI instance
-    coordinator = data["coordinator"]
-    serial_number = entry.data.get("serial_number")
-
-    # Wait for device_info to be available
-    for _ in range(10):  # Retry up to 10 times with a delay
-        device_info = data.get("device_info")
-        if device_info:
-            break
-        _LOGGER.warning("Waiting for device_info to become available...")
-        await asyncio.sleep(1)
-    else:
-        _LOGGER.error("Device info not found after retries.")
-        return
-
-    # Create a switch for the continuous fan
-    async_add_entities([ContinuousFanSwitch(api, coordinator, serial_number, device_info)])
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
-class ContinuousFanSwitch(SwitchEntity):
+class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of the Actron Air Neo continuous fan switch."""
 
     def __init__(self, api, coordinator, serial_number, device_info) -> None:

@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .entity import EntitySensor, DiagnosticSensor
+from .switch import ContinuousFanSwitch
 
 
 async def async_setup_entry(
@@ -27,7 +28,9 @@ async def async_setup_entry(
 
     # Create the aircon device
     ac_unit = ACUnit(serial_number, system, status)
-    data["device_info"] = ac_unit.device_info
+    
+    # Setup continuous fan switch
+    async_add_entities([ContinuousFanSwitch(api, coordinator, serial_number, ac_unit)])
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
