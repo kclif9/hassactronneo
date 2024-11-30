@@ -7,5 +7,6 @@
     "documentation": "https://github.com/kclif9/actron-neo",
     "iot_class": "cloud_polling",
     "dependencies": [],
-    "requirements": ["actron-neo-api==0.0.9"]
+    "requirements": ["actron-neo-api==0.0.9"],
+    "issue_tracker": ""
   }
