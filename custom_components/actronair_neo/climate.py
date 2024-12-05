@@ -104,7 +104,7 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def fan_modes(self) -> list[str]:
         """Return the list of available fan modes."""
-        return self._attr_fan_modes
+        return list(API_FAN_MODE_MAPPING.keys())
 
     @property
     def temperature_unit(self) -> str:
@@ -214,11 +214,12 @@ class ActronSystemClimate(ClimateEntity):
             .get("AirconSystem", {})
             .get("LiveTemp_oC", "")
         )
-        self._attr_fan_mode = (
+        api_fan_mode = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})
-            .get("FanMode", "")
+            .get("FanMode", "").upper()
         )
+        self._attr_fan_mode = {v: k for k, v in API_FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
 
 
 class ActronZoneClimate(ClimateEntity):
