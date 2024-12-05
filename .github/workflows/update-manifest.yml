@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensure all history is fetched to allow tagging
 
       - name: Update manifest.json version
         run: |
@@ -24,4 +26,7 @@ jobs:
           git config user.email "actions@github.com"
           git add custom_components/actronair_neo/manifest.json
           git commit -m "Update manifest.json for version $TAG"
-          git push
+
+      - name: Push changes
+        run: |
+          git push origin HEAD:main
