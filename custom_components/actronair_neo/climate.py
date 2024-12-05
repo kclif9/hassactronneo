@@ -21,7 +21,6 @@ HVAC_MODE_OFF = HVACMode.OFF
 HVAC_MODE_COOL = HVACMode.COOL
 HVAC_MODE_HEAT = HVACMode.HEAT
 HVAC_MODE_AUTO = HVACMode.AUTO
-HVAC_MODE_FAN = HVACMode.FAN
 SUPPORT_TARGET_TEMPERATURE = ClimateEntityFeature.TARGET_TEMPERATURE
 TEMP_CELSIUS = UnitOfTemperature.CELSIUS
 
@@ -83,7 +82,7 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """Return HVAC Modes."""
-        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO, HVAC_MODE_FAN]
+        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
 
     @property
     def fan_mode(self) -> str:
@@ -125,8 +124,6 @@ class ActronSystemClimate(ClimateEntity):
             return HVAC_MODE_AUTO
         if mode == 'HEAT':
             return HVAC_MODE_HEAT
-        if mode == 'FAN':
-            return HVAC_MODE_FAN
         if mode == 'OFF':
             return HVAC_MODE_OFF
 
