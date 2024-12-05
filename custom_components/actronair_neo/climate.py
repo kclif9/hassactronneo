@@ -17,6 +17,18 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 
+FAN_MODE_MAPPING = {
+    "auto": "AUTO",
+    "low": "LOW",
+    "medium": "MEDIUM",
+    "high": "HIGH",
+}
+HVAC_MODE_MAPPING = {
+    "COOL": HVAC_MODE_COOL,
+    "HEAT": HVAC_MODE_HEAT,
+    "AUTO": HVAC_MODE_AUTO,
+    "OFF": HVAC_MODE_OFF,
+}
 HVAC_MODE_OFF = HVACMode.OFF
 HVAC_MODE_COOL = HVACMode.COOL
 HVAC_MODE_HEAT = HVACMode.HEAT
@@ -119,13 +131,7 @@ class ActronSystemClimate(ClimateEntity):
         )
         
         # Map API modes to Home Assistant HVAC modes
-        mode_mapping = {
-            "COOL": HVAC_MODE_COOL,
-            "HEAT": HVAC_MODE_HEAT,
-            "AUTO": HVAC_MODE_AUTO,
-            "OFF": HVAC_MODE_OFF,
-        }
-        return mode_mapping.get(raw_mode, HVAC_MODE_OFF)
+        return HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
 
     @property
     def min_temp(self) -> float:
@@ -139,7 +145,11 @@ class ActronSystemClimate(ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
-        await self._api.set_fan_mode(self._serial_number, fan_mode=fan_mode)
+        api_fan_mode = API_FAN_MODE_MAPPING.get(fan_mode.lower())
+        if api_fan_mode is None:
+            raise ValueError(f"Fan mode '{fan_mode}' is not valid. Valid modes are: {list(API_FAN_MODE_MAPPING.keys())}")
+        
+        await self._api.set_fan_mode(self._serial_number, fan_mode=api_fan_mode)
         self._attr_fan_mode = fan_mode
         self.async_write_ha_state()
 
@@ -193,13 +203,7 @@ class ActronSystemClimate(ClimateEntity):
             .get("UserAirconSettings", {})
             .get("Mode", "OFF")
         )
-        mode_mapping = {
-            "COOL": HVAC_MODE_COOL,
-            "HEAT": HVAC_MODE_HEAT,
-            "AUTO": HVAC_MODE_AUTO,
-            "OFF": HVAC_MODE_OFF,
-        }
-        self._hvac_mode = mode_mapping.get(raw_mode, HVAC_MODE_OFF)
+        self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
         self._target_temp = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})
