@@ -186,22 +186,15 @@ class ActronSystemClimate(ClimateEntity):
             .get("UserAirconSettings", {})
             .get("Mode", HVAC_MODE_OFF)
         )
-        if self._hvac_mode == HVAC_MODE_HEAT:
-            self._target_temp = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
-                .get("Mode", "")
-            )
-        if self._hvac_mode == HVAC_MODE_COOL:
-            self._target_temp = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
-                .get("TemperatureSetpoint_Cool_oC", "")
-            )
+        self._target_temp = (
+            status.get("lastKnownState", {})
+            .get("UserAirconSettings", {})
+            .get("TemperatureSetpoint_Heat_oC", "")
+        )
         self._current_temp = (
-            self.coordinator.data.get("lastKnownState", {})
+            status.get("lastKnownState", {})
             .get("AirconSystem", {})
-            .get("LiveTemp_oC", [])
+            .get("LiveTemp_oC", "")
         )
         self._attr_fan_mode = (
             status.get("lastKnownState", {})
