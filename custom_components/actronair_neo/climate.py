@@ -207,11 +207,11 @@ class ActronSystemClimate(ClimateEntity):
         self._target_temp = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})
-            .get("TemperatureSetpoint_Heat_oC", "")
+            .get("TemperatureSetpoint_Cool_oC", "")
         )
         self._current_temp = (
             status.get("lastKnownState", {})
-            .get("AirconSystem", {})
+            .get("MasterInfo", {})
             .get("LiveTemp_oC", "")
         )
         api_fan_mode = (
