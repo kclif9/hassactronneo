@@ -12,11 +12,11 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-_LOGGER.debug("Config flow for Actron Neo loaded")
+_LOGGER.debug("Config flow for Actron Air Neo loaded")
 
 
 class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Actron Neo."""
+    """Handle a config flow for Actron Air Neo."""
 
     VERSION = 1
 
@@ -76,14 +76,14 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class ActronNeoOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options for Actron Neo."""
+    """Handle options for Actron Air Neo."""
 
     def __init__(self, config_entry) -> None:
         """Initialise options flow handler."""
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None) -> config_entries.ConfigFlowResult:
-        """Manage the Actron Neo options."""
+        """Manage the Actron Air Neo options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 

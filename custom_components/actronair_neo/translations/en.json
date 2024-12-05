@@ -1,0 +1,33 @@
+{
+    "title": "Actron Air Neo",
+    "config": {
+      "step": {
+        "user": {
+          "title": "Set up Actron Air Neo",
+          "description": "Enter your Actron Air Neo account credentials to connect.",
+          "data": {
+            "username": "Username",
+            "password": "Password"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "Unable to connect to Actron Air Neo. Please check your credentials and try again."
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Actron Air Neo Options",
+          "description": "Configure options for the Actron Air Neo integration."
+        }
+      }
+    },
+    "device_automation": {
+      "action_type": {
+        "turn_on": "Turn on Actron Air Neo device",
+        "turn_off": "Turn off Actron Air Neo device"
+      }
+    }
+  }
+  

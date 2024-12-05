@@ -1,0 +1,18 @@
+{
+<<<<<<< HEAD:actron_neo/manifest.json
+    "domain": "actron_neo",
+    "name": "Actron Neo",
+    "version": "0.0.21",
+=======
+    "domain": "actronair_neo",
+    "name": "Actron Air Neo",
+    "version": "0.0.20",
+>>>>>>> 81d25308992494e7c608cb8c260f7722551bac2e:custom_components/actronair_neo/manifest.json
+    "codeowners": ["@kclif9"],
+    "config_flow": true,
+    "documentation": "https://github.com/kclif9/actron-neo",
+    "iot_class": "cloud_polling",
+    "dependencies": [],
+    "requirements": ["actron-neo-api==0.0.9"],
+    "issue_tracker": ""
+  }

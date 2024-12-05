@@ -1,4 +1,4 @@
-"""Actron Neo climate integration."""
+"""Actron Air Neo climate integration."""
 
 from datetime import timedelta
 import logging
@@ -10,12 +10,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN, PLATFORMS
+from .device import ACUnit
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Actron Neo integration from a config entry."""
+    """Set up Actron Air Neo integration from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
     # Retrieve stored access_token and serial_number from the config entry
@@ -48,8 +49,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Perform the first data fetch
     await coordinator.async_config_entry_first_refresh()
 
+    # Obtain AC Units
+    system = await api.get_ac_systems()
+    status = await api.get_ac_status(serial_number)
+
+    # Create the aircon device
+    ac_unit = ACUnit(serial_number, system, status)
+
     # Store the coordinator in hass.data
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
+    hass.data[DOMAIN][entry.entry_id]["ac_unit"] = ac_unit
 
     # Forward setup to platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
