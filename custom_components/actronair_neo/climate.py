@@ -61,6 +61,7 @@ class ActronSystemClimate(ClimateEntity):
         self._current_temp = None
         self._attr_fan_mode = "auto"
         self._attr_fan_modes = ["auto", "low", "medium", "high"]
+        self._ac_unit = hass.data[DOMAIN][entry.entry_id]["ac_unit"]
 
     @property
     def name(self) -> str:
@@ -68,20 +69,14 @@ class ActronSystemClimate(ClimateEntity):
         return self._name
 
     @property
-    def device_info(self) -> dict:
-        """Return device information for linking entities to a device."""
-        return {
-            "identifiers": {(DOMAIN, self._serial_number)},
-            "name": self._name,
-            "manufacturer": "Actron",
-            "model": "Neo System",
-            "via_device": (DOMAIN, self._serial_number),
-        }
+    def device_info(self):
+        """Return the device information."""
+        return self._ac_unit.device_info
 
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"actron_neo_{self._name.replace(' ', '_').lower()}"
+        return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
