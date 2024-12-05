@@ -38,7 +38,7 @@ async def async_setup_entry(
 
     # Add system-wide climate entity
     async_add_entities(
-        [ActronSystemClimate(coordinator, api, entry.data["serial_number"])]
+        [ActronSystemClimate(hass, coordinator, api, entry.data["serial_number"])]
     )
 
 
@@ -46,7 +46,7 @@ class ActronSystemClimate(ClimateEntity):
     """Representation of the Actron Air Neo system."""
 
     def __init__(
-        self, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, serial_number: str
+        self, hass: HomeAssistant, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, serial_number: str
     ) -> None:
         """Initialise a Actron Air Neo unit."""
         super().__init__()
