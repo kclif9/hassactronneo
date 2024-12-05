@@ -118,14 +118,17 @@ class ActronSystemClimate(ClimateEntity):
             .get("UserAirconSettings", {})
             .get("Mode", "")
         )
-        if mode == 'COOL':
-            return HVAC_MODE_COOL
-        if mode == 'AUTO':
-            return HVAC_MODE_AUTO
-        if mode == 'HEAT':
-            return HVAC_MODE_HEAT
-        if mode == 'OFF':
-            return HVAC_MODE_OFF
+        return mode
+
+    @property
+    def min_temp(self) -> float:
+        """Return the minimum temperature that can be set."""
+        return 16.0
+
+    @property
+    def max_temp(self) -> float:
+        """Return the maximum temperature that can be set."""
+        return 30.0
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
@@ -179,14 +182,31 @@ class ActronSystemClimate(ClimateEntity):
         status = self._coordinator.data
 
         self._hvac_mode = (
-            status.get("AirconSystem", {}).get("Mode", HVAC_MODE_OFF).lower()
+            status.get("lastKnownState", {})
+            .get("UserAirconSettings", {})
+            .get("Mode", HVAC_MODE_OFF)
         )
-        self._target_temp = status.get("AirconSystem", {}).get(
-            "UserAirconSettings.TemperatureSetpoint_Cool_oC"
+        if self._hvac_mode == HVAC_MODE_HEAT:
+            self._target_temp = (
+                status.get("lastKnownState", {})
+                .get("UserAirconSettings", {})
+                .get("Mode", "")
+            )
+        if self._hvac_mode == HVAC_MODE_COOL:
+            self._target_temp = (
+                status.get("lastKnownState", {})
+                .get("UserAirconSettings", {})
+                .get("TemperatureSetpoint_Cool_oC", "")
+            )
+        self._current_temp = (
+            self.coordinator.data.get("lastKnownState", {})
+            .get("AirconSystem", {})
+            .get("LiveTemp_oC", [])
         )
-        self._current_temp = status.get("AirconSystem", {}).get("LiveTemp_oC")
         self._attr_fan_mode = (
-            status.get("AirconSystem", {}).get("FanMode", "auto").lower()
+            status.get("lastKnownState", {})
+            .get("UserAirconSettings", {})
+            .get("FanMode", "")
         )
 
 
