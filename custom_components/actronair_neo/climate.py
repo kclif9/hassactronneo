@@ -21,6 +21,7 @@ HVAC_MODE_OFF = HVACMode.OFF
 HVAC_MODE_COOL = HVACMode.COOL
 HVAC_MODE_HEAT = HVACMode.HEAT
 HVAC_MODE_AUTO = HVACMode.AUTO
+HVAC_MODE_FAN = HVACMode.FAN
 SUPPORT_TARGET_TEMPERATURE = ClimateEntityFeature.TARGET_TEMPERATURE
 TEMP_CELSIUS = UnitOfTemperature.CELSIUS
 
@@ -82,7 +83,7 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """Return HVAC Modes."""
-        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
+        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO, HVAC_MODE_FAN]
 
     @property
     def fan_mode(self) -> str:
@@ -113,7 +114,21 @@ class ActronSystemClimate(ClimateEntity):
     def state(self) -> HVACMode:
         """Return the HVAC mode."""
         status = self._coordinator.data
-        return status.get("AirconSystem", {}).get("Mode", "off").lower()
+        mode = (
+            status.get("lastKnownState", {})
+            .get("UserAirconSettings", {})
+            .get("Mode", "")
+        )
+        if mode == 'COOL':
+            return HVAC_MODE_COOL
+        if mode == 'AUTO':
+            return HVAC_MODE_AUTO
+        if mode == 'HEAT':
+            return HVAC_MODE_HEAT
+        if mode == 'FAN':
+            return HVAC_MODE_FAN
+        if mode == 'OFF':
+            return HVAC_MODE_OFF
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
