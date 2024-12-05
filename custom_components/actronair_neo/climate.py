@@ -104,7 +104,7 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def fan_modes(self) -> list[str]:
         """Return the list of available fan modes."""
-        return list(API_FAN_MODE_MAPPING.keys())
+        return list(FAN_MODE_MAPPING.keys())
 
     @property
     def temperature_unit(self) -> str:
@@ -145,9 +145,9 @@ class ActronSystemClimate(ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
-        api_fan_mode = API_FAN_MODE_MAPPING.get(fan_mode.lower())
+        api_fan_mode = FAN_MODE_MAPPING.get(fan_mode.lower())
         if api_fan_mode is None:
-            raise ValueError(f"Fan mode '{fan_mode}' is not valid. Valid modes are: {list(API_FAN_MODE_MAPPING.keys())}")
+            raise ValueError(f"Fan mode '{fan_mode}' is not valid. Valid modes are: {list(FAN_MODE_MAPPING.keys())}")
         
         await self._api.set_fan_mode(self._serial_number, fan_mode=api_fan_mode)
         self._attr_fan_mode = fan_mode
@@ -219,7 +219,7 @@ class ActronSystemClimate(ClimateEntity):
             .get("UserAirconSettings", {})
             .get("FanMode", "").upper()
         )
-        self._attr_fan_mode = {v: k for k, v in API_FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
+        self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
 
 
 class ActronZoneClimate(ClimateEntity):
