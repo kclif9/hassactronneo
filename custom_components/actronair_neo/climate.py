@@ -27,13 +27,14 @@ HVAC_MODE_OFF = HVACMode.OFF
 HVAC_MODE_COOL = HVACMode.COOL
 HVAC_MODE_HEAT = HVACMode.HEAT
 HVAC_MODE_AUTO = HVACMode.AUTO
+HVAC_MODE_FAN = HVACMode.FAN_ONLY
 HVAC_MODE_MAPPING = {
     "COOL": HVAC_MODE_COOL,
     "HEAT": HVAC_MODE_HEAT,
     "AUTO": HVAC_MODE_AUTO,
+    "FAN": HVAC_MODE_FAN,
     "OFF": HVAC_MODE_OFF,
 }
-SUPPORT_TARGET_TEMPERATURE = ClimateEntityFeature.TARGET_TEMPERATURE
 TEMP_CELSIUS = UnitOfTemperature.CELSIUS
 
 
@@ -68,10 +69,11 @@ class ActronSystemClimate(ClimateEntity):
         self._serial_number = serial_number
         self._name = "Actron Neo"
         self._hvac_mode = HVAC_MODE_OFF
-        self._target_temp = None
+        self._target_temperature = None
         self._fan_mode = "AUTO"
         self._continuous = False
-        self._current_temp = None
+        self._current_humidity = None
+        self._current_temperature = None
         self._attr_fan_mode = "auto"
         self._attr_fan_modes = ["auto", "low", "medium", "high"]
         self._ac_unit = ac_unit
@@ -112,10 +114,25 @@ class ActronSystemClimate(ClimateEntity):
         return TEMP_CELSIUS
 
     @property
+    def current_humidity(self) -> float:
+        """Return the current humidity"""
+        return self._current_humidity
+
+    @property
+    def current_temperature(self) -> float:
+        """Return the current temperature"""
+        return self._current_temperature
+
+    @property
+    def target_temperature(self) -> float:
+        """Return the current temperature"""
+        return self._target_temperature
+
+    @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
         return (
-            SUPPORT_TARGET_TEMPERATURE 
+            ClimateEntityFeature.TARGET_TEMPERATURE 
             | ClimateEntityFeature.FAN_MODE 
             | ClimateEntityFeature.TURN_ON 
             | ClimateEntityFeature.TURN_OFF
@@ -182,7 +199,7 @@ class ActronSystemClimate(ClimateEntity):
                 mode="AUTO",
                 temperature={"cool": temp, "heat": temp},
             )
-        self._target_temp = temp
+        self._target_temperature = temp
         self.async_write_ha_state()
 
     async def async_turn_on_continuous(self, continuous: bool) -> None:
@@ -204,12 +221,17 @@ class ActronSystemClimate(ClimateEntity):
             .get("Mode", "OFF")
         )
         self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
-        self._target_temp = (
+        self._target_temperature = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})
             .get("TemperatureSetpoint_Cool_oC", "")
         )
-        self._current_temp = (
+        self._current_humidity = (
+            status.get("lastKnownState", {})
+            .get("MasterInfo", {})
+            .get("LiveHumidity_pc", "")
+        )
+        self._current_temperature = (
             status.get("lastKnownState", {})
             .get("MasterInfo", {})
             .get("LiveTemp_oC", "")
@@ -221,54 +243,3 @@ class ActronSystemClimate(ClimateEntity):
         )
         self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
 
-
-class ActronZoneClimate(ClimateEntity):
-    """Representation of an Actron Air Neo zone."""
-
-    def __init__(self, coordinator, api, serial_number, zone_id, zone_name) -> None:
-        """Initialize an Actron Air Neo zone climate entity."""
-        super().__init__()  # Ensure parent class is initialized
-        self._coordinator = coordinator
-        self._api = api
-        self._serial_number = serial_number
-        self._zone_id = zone_id
-        self._name = f"Zone {zone_name}"
-        self._hvac_mode = HVAC_MODE_OFF
-        self._target_temp = None
-        self._fan_mode = None
-        self._current_temp = None
-
-    @property
-    def name(self) -> str:
-        """Return the zone name."""
-        return self._name
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"actron_neo_{self._name.replace(' ', '_').lower()}"
-
-    @property
-    def hvac_modes(self) -> list[HVACMode]:
-        """Return the HVAC Modes."""
-        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
-
-    async def async_set_temperature(self, **kwargs: Any) -> None:
-        """Set the zone temperature."""
-        temp = kwargs.get("temperature")
-        mode = self._hvac_mode.lower()
-        await self._api.set_temperature(
-            self._serial_number, mode=mode.upper(), temperature=temp, zone=self._zone_id
-        )
-        self._target_temp = temp
-        self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Fetch new state data for the climate entity."""
-        status = self._coordinator.data
-        self._hvac_mode = status.get("AirconSystem", {}).get("Mode", "off").lower()
-        self._target_temp = status.get("AirconSystem", {}).get(
-            "UserAirconSettings.TemperatureSetpoint_Cool_oC"
-        )
-        self._fan_mode = status.get("AirconSystem", {}).get("FanMode", "auto")
-        self._current_temp = status.get("AirconSystem", {}).get("LiveTemp_oC", None)
