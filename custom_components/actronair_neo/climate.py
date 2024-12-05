@@ -112,13 +112,20 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def state(self) -> HVACMode:
         """Return the HVAC mode."""
-        status = self._coordinator.data
-        mode = (
-            status.get("lastKnownState", {})
+        raw_mode = (
+            self._coordinator.data.get("lastKnownState", {})
             .get("UserAirconSettings", {})
             .get("Mode", "")
         )
-        return mode
+        
+        # Map API modes to Home Assistant HVAC modes
+        mode_mapping = {
+            "COOL": HVAC_MODE_COOL,
+            "HEAT": HVAC_MODE_HEAT,
+            "AUTO": HVAC_MODE_AUTO,
+            "OFF": HVAC_MODE_OFF,
+        }
+        return mode_mapping.get(raw_mode, HVAC_MODE_OFF)
 
     @property
     def min_temp(self) -> float:
@@ -181,11 +188,18 @@ class ActronSystemClimate(ClimateEntity):
         await self._coordinator.async_request_refresh()
         status = self._coordinator.data
 
-        self._hvac_mode = (
+        raw_mode = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})
-            .get("Mode", HVAC_MODE_OFF)
+            .get("Mode", "OFF")
         )
+        mode_mapping = {
+            "COOL": HVAC_MODE_COOL,
+            "HEAT": HVAC_MODE_HEAT,
+            "AUTO": HVAC_MODE_AUTO,
+            "OFF": HVAC_MODE_OFF,
+        }
+        self._hvac_mode = mode_mapping.get(raw_mode, HVAC_MODE_OFF)
         self._target_temp = (
             status.get("lastKnownState", {})
             .get("UserAirconSettings", {})
