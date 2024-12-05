@@ -103,6 +103,7 @@ class ActronSystemClimate(ClimateEntity):
         """Return the temperature unit."""
         return TEMP_CELSIUS
 
+    @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
         return (
