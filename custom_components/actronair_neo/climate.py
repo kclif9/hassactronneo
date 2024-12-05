@@ -139,7 +139,7 @@ class ActronSystemClimate(ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
-        await self._api.set_fan_mode(self._serial_number, mode=fan_mode)
+        await self._api.set_fan_mode(self._serial_number, fan_mode=fan_mode)
         self._attr_fan_mode = fan_mode
         self.async_write_ha_state()
 
