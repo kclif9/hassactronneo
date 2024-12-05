@@ -68,6 +68,17 @@ class ActronSystemClimate(ClimateEntity):
         return self._name
 
     @property
+    def device_info(self) -> dict:
+        """Return device information for linking entities to a device."""
+        return {
+            "identifiers": {(DOMAIN, self._serial_number)},
+            "name": self._name,
+            "manufacturer": "Actron",
+            "model": "Neo System",
+            "via_device": (DOMAIN, self._serial_number),
+        }
+
+    @property
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"actron_neo_{self._name.replace(' ', '_').lower()}"
@@ -92,10 +103,14 @@ class ActronSystemClimate(ClimateEntity):
         """Return the temperature unit."""
         return TEMP_CELSIUS
 
-    @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
-        return SUPPORT_TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE
+        return (
+            SUPPORT_TARGET_TEMPERATURE 
+            | ClimateEntityFeature.FAN_MODE 
+            | ClimateEntityFeature.TURN_ON 
+            | ClimateEntityFeature.TURN_OFF
+        )
 
     @property
     def state(self) -> HVACMode:

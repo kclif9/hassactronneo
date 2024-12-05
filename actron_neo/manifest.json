@@ -1,7 +1,7 @@
 {
     "domain": "actron_neo",
     "name": "Actron Neo",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "codeowners": ["@kclif9"],
     "config_flow": true,
     "documentation": "https://github.com/kclif9/actron-neo",
