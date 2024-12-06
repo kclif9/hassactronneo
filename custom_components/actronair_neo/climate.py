@@ -77,6 +77,8 @@ class ActronSystemClimate(ClimateEntity):
         self._attr_fan_mode = "auto"
         self._attr_fan_modes = ["auto", "low", "medium", "high"]
         self._ac_unit = ac_unit
+        self._min_temperature = None
+        self._max_temperature = None
 
     @property
     def name(self) -> str:
@@ -153,12 +155,12 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature that can be set."""
-        return 16.0
+        return self._min_temperature
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature that can be set."""
-        return 30.0
+        return self._max_temperature
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
@@ -242,4 +244,16 @@ class ActronSystemClimate(ClimateEntity):
             .get("FanMode", "").upper()
         )
         self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
+        self._min_temperature = (
+            self._coordinator.data.get("lastKnownState", {})
+            .get("NV_Limits", {})
+            .get("UserSetpoint_oC", {})
+            .get("setCool_Min", "")
+        )
+        self._max_temperature = (
+            self._coordinator.data.get("lastKnownState", {})
+            .get("NV_Limits", {})
+            .get("UserSetpoint_oC", {})
+            .get("setCool_Max", "")
+        )
 
