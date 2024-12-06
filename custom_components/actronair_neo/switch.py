@@ -1,5 +1,7 @@
 """Switch platform for Actron Neo integration."""
 
+import logging
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -8,6 +10,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .device import ACZone
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -24,7 +28,7 @@ async def async_setup_entry(
     ac_unit = data["ac_unit"]
 
     # Fetch the status and create ZoneSwitches
-    status = await api.get_ac_status(serial_number)
+    status = coordinator.data
     zones = status.get("RemoteZoneInfo", [])
     entities = []
 

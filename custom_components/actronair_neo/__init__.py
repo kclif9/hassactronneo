@@ -43,8 +43,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if local_state["full_update"] is None:
                 _LOGGER.debug("Fetching full-status-broadcast.")
                 full_update = await api.get_ac_status(serial_number)
-                local_state["full_update"] = full_update
-                return full_update
+                local_state["full_update"] = full_update.get("lastKnownState", {})
+                return local_state["full_update"]
 
             # Fetch incremental updates since the last event
             _LOGGER.debug("Fetching incremental updates.")
@@ -58,12 +58,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
                 if event_type == "full-status-broadcast":
                     _LOGGER.debug("Received full-status-broadcast, updating full state.")
+                    # Replace the full state with the new data
                     local_state["full_update"] = event["data"]
-                    _LOGGER.debug("Current Status")
-                    _LOGGER.debug(event["data"])
                     break
                 elif event_type == "status-change-broadcast":
                     _LOGGER.debug("Merging status-change-broadcast into full state.")
+                    # Merge 'data' from incremental updates into the current state
                     merge_incremental_update(local_state["full_update"], event["data"])
 
                 # Update the most recent event ID
@@ -82,6 +82,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 merge_incremental_update(full_state[key], value)
             else:
                 full_state[key] = value
+
+        # Ensure essential keys (like 'lastKnownStatus') are preserved
+        if "lastKnownStatus" not in full_state:
+            full_state["lastKnownStatus"] = {}
 
     # Set up data update coordinator
     coordinator = DataUpdateCoordinator(

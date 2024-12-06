@@ -25,7 +25,7 @@ async def async_setup_entry(
     ac_unit = data["ac_unit"]
 
     # Obtain AC Units
-    status = await api.get_ac_status(serial_number)
+    status = coordinator.data
 
     # Diagnostic sensor configurations
     diagnostic_configs = [

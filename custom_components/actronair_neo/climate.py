@@ -69,16 +69,37 @@ class ActronSystemClimate(ClimateEntity):
         self._serial_number = serial_number
         self._name = "Actron Neo"
         self._hvac_mode = HVAC_MODE_OFF
-        self._target_temperature = None
+        self._target_temperature = (
+            self._coordinator.data.get("UserAirconSettings", {})
+            .get("TemperatureSetpoint_Cool_oC", "")
+        )
         self._fan_mode = "AUTO"
         self._continuous = False
-        self._current_humidity = None
-        self._current_temperature = None
-        self._attr_fan_mode = "auto"
+        self._current_humidity = (
+            self._coordinator.data.get("MasterInfo", {})
+            .get("LiveHumidity_pc", "")
+        )
+        self._current_temperature = (
+            self._coordinator.data.get("MasterInfo", {})
+            .get("LiveTemp_oC", "")
+        )
+        api_fan_mode = (
+            self._coordinator.data.get("UserAirconSettings", {})
+            .get("FanMode", "").upper()
+        )
+        self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
         self._attr_fan_modes = ["auto", "low", "medium", "high"]
         self._ac_unit = ac_unit
-        self._min_temperature = None
-        self._max_temperature = None
+        self._min_temperature = (
+            self._coordinator.data.get("NV_Limits", {})
+            .get("UserSetpoint_oC", {})
+            .get("setCool_Min", "")
+        )
+        self._max_temperature = (
+            self._coordinator.data.get("NV_Limits", {})
+            .get("UserSetpoint_oC", {})
+            .get("setCool_Max", "")
+        )
 
     @property
     def name(self) -> str:
