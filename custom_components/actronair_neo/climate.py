@@ -106,7 +106,7 @@ class ActronSystemClimate(ClimateEntity):
         """Return a unique ID."""
         return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
 
-    @cached_property
+    @property
     def hvac_modes(self) -> list[HVACMode]:
         """Return HVAC Modes."""
         return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
@@ -116,7 +116,7 @@ class ActronSystemClimate(ClimateEntity):
         """Return the current fan mode."""
         return self._attr_fan_mode
 
-    @cached_property
+    @property
     def fan_modes(self) -> list[str]:
         """Return the list of available fan modes."""
         return list(FAN_MODE_MAPPING.keys())
