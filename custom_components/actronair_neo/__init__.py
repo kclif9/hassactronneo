@@ -96,13 +96,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         update_method=fetch_and_merge_status,
     )
 
+    await coordinator.async_config_entry_first_refresh()
+
     system = await api.get_ac_systems()
     ac_unit = ACUnit(serial_number, system, coordinator.data)
 
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
     hass.data[DOMAIN][entry.entry_id]["ac_unit"] = ac_unit
-
-    await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
