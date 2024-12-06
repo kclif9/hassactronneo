@@ -12,13 +12,11 @@ class ACUnit:
         self._manufacturer = "Actron Air"
         self._name = system["_embedded"]["ac-system"][0]["description"]
         self._firmware_version = (
-            self._status.get("lastKnownState", {})
-            .get("AirconSystem", {})
+            self._status.get("AirconSystem", {})
             .get("MasterWCFirmwareVersion", "Unknown")
         )
         self._model_name = (
-            self._status.get("lastKnownState", {})
-            .get("AirconSystem", {})
+            self._status.get("AirconSystem", {})
             .get("MasterWCModel", "Unknown")
         )
 

@@ -25,7 +25,7 @@ async def async_setup_entry(
 
     # Fetch the status and create ZoneSwitches
     status = await api.get_ac_status(serial_number)
-    zones = status.get("lastKnownState", {}).get("RemoteZoneInfo", [])
+    zones = status.get("RemoteZoneInfo", [])
     entities = []
 
     for zone_number, zone in enumerate(zones, start=1):
@@ -68,8 +68,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         status = self.coordinator.data
         if status:
             fan_mode = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
+                status.get("UserAirconSettings", {})
                 .get("FanMode", "")
             )
             return fan_mode.endswith("+CONT")
@@ -81,8 +80,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         status = self.coordinator.data
         if status:
             fan_mode = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
+                status.get("UserAirconSettings", {})
                 .get("FanMode", "")
             )
             return {"fan_mode": fan_mode.replace("+CONT", "")}
@@ -98,8 +96,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         status = self.coordinator.data
         if status:
             fan_mode = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
+                status.get("UserAirconSettings", {})
                 .get("FanMode", "")
             )
             if fan_mode:
@@ -114,8 +111,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         status = self.coordinator.data
         if status:
             fan_mode = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
+                status.get("UserAirconSettings", {})
                 .get("FanMode", "")
             )
             if fan_mode:
@@ -154,8 +150,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         status = self.coordinator.data
         if status:
             enabled_zones = (
-                status.get("lastKnownState", {})
-                .get("UserAirconSettings", {})
+                status.get("UserAirconSettings", {})
                 .get("EnabledZones", "")
             )
             zone_state = enabled_zones[self._zone_number - 1]

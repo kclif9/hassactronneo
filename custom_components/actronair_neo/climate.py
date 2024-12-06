@@ -144,8 +144,7 @@ class ActronSystemClimate(ClimateEntity):
     def state(self) -> HVACMode:
         """Return the HVAC mode."""
         raw_mode = (
-            self._coordinator.data.get("lastKnownState", {})
-            .get("UserAirconSettings", {})
+            self._coordinator.data.get("UserAirconSettings", {})
             .get("Mode", "")
         )
         
@@ -218,41 +217,34 @@ class ActronSystemClimate(ClimateEntity):
         status = self._coordinator.data
 
         raw_mode = (
-            status.get("lastKnownState", {})
-            .get("UserAirconSettings", {})
+            status.get("UserAirconSettings", {})
             .get("Mode", "OFF")
         )
         self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
         self._target_temperature = (
-            status.get("lastKnownState", {})
-            .get("UserAirconSettings", {})
+            status.get("UserAirconSettings", {})
             .get("TemperatureSetpoint_Cool_oC", "")
         )
         self._current_humidity = (
-            status.get("lastKnownState", {})
-            .get("MasterInfo", {})
+            status.get("MasterInfo", {})
             .get("LiveHumidity_pc", "")
         )
         self._current_temperature = (
-            status.get("lastKnownState", {})
-            .get("MasterInfo", {})
+            status.get("MasterInfo", {})
             .get("LiveTemp_oC", "")
         )
         api_fan_mode = (
-            status.get("lastKnownState", {})
-            .get("UserAirconSettings", {})
+            status.get("UserAirconSettings", {})
             .get("FanMode", "").upper()
         )
         self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
         self._min_temperature = (
-            self._coordinator.data.get("lastKnownState", {})
-            .get("NV_Limits", {})
+            self._coordinator.data.get("NV_Limits", {})
             .get("UserSetpoint_oC", {})
             .get("setCool_Min", "")
         )
         self._max_temperature = (
-            self._coordinator.data.get("lastKnownState", {})
-            .get("NV_Limits", {})
+            self._coordinator.data.get("NV_Limits", {})
             .get("UserSetpoint_oC", {})
             .get("setCool_Max", "")
         )

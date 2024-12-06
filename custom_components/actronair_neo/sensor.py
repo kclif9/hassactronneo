@@ -33,7 +33,7 @@ async def async_setup_entry(
             EntitySensor,
             ac_unit,
             "Clean Filter",
-            ["lastKnownState", "Alerts"],
+            ["Alerts"],
             "CleanFilter",
             None,
         ),
@@ -41,7 +41,7 @@ async def async_setup_entry(
             EntitySensor,
             ac_unit,
             "Defrost Mode",
-            ["lastKnownState", "Alerts"],
+            ["Alerts"],
             "Defrosting",
             None,
         ),
@@ -49,7 +49,7 @@ async def async_setup_entry(
             DiagnosticSensor,
             ac_unit,
             "Compressor Chasing Temperature",
-            ["lastKnownState", "LiveAircon"],
+            ["LiveAircon"],
             "CompressorChasingTemperature",
             "°C",
         ),
@@ -57,7 +57,7 @@ async def async_setup_entry(
             DiagnosticSensor,
             ac_unit,
             "Compressor Live Temperature",
-            ["lastKnownState", "LiveAircon"],
+            ["LiveAircon"],
             "CompressorLiveTemperature",
             "°C",
         ),
@@ -65,7 +65,7 @@ async def async_setup_entry(
             DiagnosticSensor,
             ac_unit,
             "Compressor Mode",
-            ["lastKnownState", "LiveAircon"],
+            ["LiveAircon"],
             "CompressorMode",
             None,
         ),
@@ -73,7 +73,7 @@ async def async_setup_entry(
             EntitySensor,
             ac_unit,
             "System On",
-            ["lastKnownState", "LiveAircon"],
+            ["LiveAircon"],
             "SystemOn",
             None,
         ),
@@ -81,7 +81,7 @@ async def async_setup_entry(
             DiagnosticSensor,
             ac_unit,
             "Compressor Speed",
-            ["lastKnownState", "LiveAircon", "OutdoorUnit"],
+            ["LiveAircon", "OutdoorUnit"],
             "CompSpeed",
             "rpm",
         ),
@@ -89,7 +89,7 @@ async def async_setup_entry(
             DiagnosticSensor,
             ac_unit,
             "Compressor Power",
-            ["lastKnownState", "LiveAircon", "OutdoorUnit"],
+            ["LiveAircon", "OutdoorUnit"],
             "CompPower",
             "W",
         ),
@@ -97,7 +97,7 @@ async def async_setup_entry(
             EntitySensor,
             ac_unit,
             "Outdoor Temperature",
-            ["lastKnownState", "MasterInfo"],
+            ["MasterInfo"],
             "LiveOutdoorTemp_oC",
             "°C",
         ),
@@ -105,7 +105,7 @@ async def async_setup_entry(
             EntitySensor,
             ac_unit,
             "Humidity",
-            ["lastKnownState", "MasterInfo"],
+            ["MasterInfo"],
             "LiveHumidity_pc",
             "%",
         ),
@@ -128,7 +128,7 @@ async def async_setup_entry(
             )
 
     # Fetch Zones
-    zones = status.get("lastKnownState", {}).get("RemoteZoneInfo", [])
+    zones = status.get("RemoteZoneInfo", [])
 
     zone_sensors = []
     ac_zones = []
@@ -144,7 +144,7 @@ async def async_setup_entry(
 
     # Fetch Peripherals
     peripherals = (
-        status.get("lastKnownState", {}).get("AirconSystem", {}).get("Peripherals", [])
+        status.get("AirconSystem", {}).get("Peripherals", [])
     )
 
     for peripheral in peripherals:
@@ -223,7 +223,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        zones = self.coordinator.data.get("lastKnownState", {}).get(
+        zones = self.coordinator.data.get(
             "RemoteZoneInfo", []
         )
         for zone_number, zone in enumerate(zones, start=1):
@@ -297,8 +297,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         """Return the state of the sensor."""
         # Look up the state using the state key in the data.
         data_source = (
-            self.coordinator.data.get("lastKnownState", {})
-            .get("AirconSystem", {})
+            self.coordinator.data.get("AirconSystem", {})
             .get("Peripherals", [])
         )
         for peripheral in data_source:
