@@ -59,6 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 if event_type == "full-status-broadcast":
                     _LOGGER.debug("Received full-status-broadcast, updating full state.")
                     local_state["full_update"] = event["data"]
+                    break
                 elif event_type == "status-change-broadcast":
                     _LOGGER.debug("Merging status-change-broadcast into full state.")
                     merge_incremental_update(local_state["full_update"], event["data"])
