@@ -193,7 +193,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._ac_zone = ac_zone
-        self._zone_number = ac_zone.zone_number()
+        self._zone_number = ac_zone.zone_number
         self._name = name
         self._state_key = state_key
         self._unit_of_measurement = unit_of_measurement

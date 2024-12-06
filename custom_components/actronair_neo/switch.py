@@ -135,7 +135,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         self._api = api
         self._ac_zone = ac_zone
         self._serial_number = serial_number
-        self._zone_number = ac_zone.zone_number()
+        self._zone_number = ac_zone.zone_number
         self._name = f"Zone {self._zone_number} Enabled"
 
     @property
