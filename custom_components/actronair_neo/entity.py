@@ -3,8 +3,9 @@
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+DIAGNOSTIC_CATEGORY = EntityCategory.DIAGNOSTIC
 
-class BaseSensor(CoordinatorEntity, Entity):
+class EntitySensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 
     def __init__(
@@ -16,6 +17,7 @@ class BaseSensor(CoordinatorEntity, Entity):
         key,
         device_info,
         unit_of_measurement=None,
+        is_diagnostic=False,
     ) -> None:
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
@@ -25,6 +27,7 @@ class BaseSensor(CoordinatorEntity, Entity):
         self._key = key
         self._device_info = device_info
         self._unit_of_measurement = unit_of_measurement
+        self._is_diagnostic = is_diagnostic
 
     @property
     def name(self) -> str:
@@ -57,31 +60,7 @@ class BaseSensor(CoordinatorEntity, Entity):
         """Return device information."""
         return self._device_info
 
-
-class EntitySensor(BaseSensor):
-    """Entity sensor inheriting BaseSensor."""
-
-    def __init__(
-        self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
-    ) -> None:
-        """Initialize the humidity sensor."""
-        super().__init__(
-            coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
-        )
-
-
-class DiagnosticSensor(BaseSensor):
-    """Diagnostic sensor inheriting BaseSensor."""
-
-    def __init__(
-        self, coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
-    ) -> None:
-        """Initialize the humidity sensor."""
-        super().__init__(
-            coordinator, ac_unit, name, path, key, device_info, unit_of_measurement
-        )
-
     @property
-    def entity_category(self) -> EntityCategory:
-        """Return the entity category as diagnostic."""
-        return EntityCategory.DIAGNOSTIC
+    def entity_category(self) -> EntityCategory | None:
+        """Return the entity category if the sensor is diagnostic."""
+        return DIAGNOSTIC_CATEGORY if self._is_diagnostic else None

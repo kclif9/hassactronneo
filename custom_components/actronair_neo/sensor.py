@@ -8,7 +8,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .device import ACZone, ZonePeripheral
-from .entity import EntitySensor, DiagnosticSensor
+from .entity import EntitySensor
 from .switch import ZoneSwitch
 
 
@@ -30,102 +30,95 @@ async def async_setup_entry(
     # Diagnostic sensor configurations
     diagnostic_configs = [
         (
-            EntitySensor,
             ac_unit,
             "Clean Filter",
             ["Alerts"],
             "CleanFilter",
             None,
+            False,
         ),
         (
-            EntitySensor,
             ac_unit,
             "Defrost Mode",
             ["Alerts"],
             "Defrosting",
             None,
+            False,
         ),
         (
-            DiagnosticSensor,
             ac_unit,
             "Compressor Chasing Temperature",
             ["LiveAircon"],
             "CompressorChasingTemperature",
             "°C",
+            True,
         ),
         (
-            DiagnosticSensor,
             ac_unit,
             "Compressor Live Temperature",
             ["LiveAircon"],
             "CompressorLiveTemperature",
             "°C",
+            True,
         ),
         (
-            DiagnosticSensor,
             ac_unit,
             "Compressor Mode",
             ["LiveAircon"],
             "CompressorMode",
             None,
+            True,
         ),
         (
-            EntitySensor,
             ac_unit,
             "System On",
             ["LiveAircon"],
             "SystemOn",
             None,
+            False,
         ),
         (
-            DiagnosticSensor,
             ac_unit,
             "Compressor Speed",
             ["LiveAircon", "OutdoorUnit"],
             "CompSpeed",
             "rpm",
+            True,
         ),
         (
-            DiagnosticSensor,
             ac_unit,
             "Compressor Power",
             ["LiveAircon", "OutdoorUnit"],
             "CompPower",
             "W",
+            True,
         ),
         (
-            EntitySensor,
             ac_unit,
             "Outdoor Temperature",
             ["MasterInfo"],
             "LiveOutdoorTemp_oC",
             "°C",
+            False
         ),
         (
-            EntitySensor,
             ac_unit,
             "Humidity",
             ["MasterInfo"],
             "LiveHumidity_pc",
             "%",
+            False
         ),
     ]
 
     # Create diagnostic sensors
     ac_unit_sensors = []
-    for sensor_type, ac_unit, name, path, key, unit in diagnostic_configs:
-        if sensor_type == DiagnosticSensor:
-            ac_unit_sensors.append(
-                DiagnosticSensor(
-                    coordinator, ac_unit, name, path, key, ac_unit.device_info, unit
-                )
+    for ac_unit, name, path, key, unit, diagnostic_sensor in diagnostic_configs:
+        ac_unit_sensors.append(
+            EntitySensor(
+                coordinator, ac_unit, name, path, key, ac_unit.device_info, unit, diagnostic_sensor
             )
-        elif sensor_type == EntitySensor:
-            ac_unit_sensors.append(
-                EntitySensor(
-                    coordinator, ac_unit, name, path, key, ac_unit.device_info, unit
-                )
-            )
+        )
 
     # Fetch Zones
     zones = status.get("RemoteZoneInfo", [])

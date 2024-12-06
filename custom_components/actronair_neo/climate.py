@@ -17,24 +17,33 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 
+DEFAULT_TEMPERATURE = None
+DEFAULT_MODE = "OFF"
+DEFAULT_HUMIDITY = None
+DEFAULT_TEMP_MIN = 16.0
+DEFAULT_TEMP_MAX = 32.0
 FAN_MODE_MAPPING = {
     "auto": "AUTO",
     "low": "LOW",
     "medium": "MEDIUM",
     "high": "HIGH",
 }
+FAN_MODE_MAPPING_REVERSE = {v: k for k, v in FAN_MODE_MAPPING.items()}
 HVAC_MODE_OFF = HVACMode.OFF
 HVAC_MODE_COOL = HVACMode.COOL
 HVAC_MODE_HEAT = HVACMode.HEAT
 HVAC_MODE_AUTO = HVACMode.AUTO
 HVAC_MODE_FAN = HVACMode.FAN_ONLY
 HVAC_MODE_MAPPING = {
-    "COOL": HVAC_MODE_COOL,
-    "HEAT": HVAC_MODE_HEAT,
-    "AUTO": HVAC_MODE_AUTO,
-    "FAN": HVAC_MODE_FAN,
-    "OFF": HVAC_MODE_OFF,
+    mode.value.upper(): mode
+    for mode in [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO, HVACMode.FAN_ONLY]
 }
+SUPPORTED_FEATURES = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.FAN_MODE
+    | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.TURN_OFF
+)
 TEMP_CELSIUS = UnitOfTemperature.CELSIUS
 
 
@@ -68,38 +77,19 @@ class ActronSystemClimate(ClimateEntity):
         self._api = api
         self._serial_number = serial_number
         self._name = "Actron Neo"
-        self._hvac_mode = HVAC_MODE_OFF
-        self._target_temperature = (
-            self._coordinator.data.get("UserAirconSettings", {})
-            .get("TemperatureSetpoint_Cool_oC", "")
-        )
-        self._fan_mode = "AUTO"
-        self._continuous = False
-        self._current_humidity = (
-            self._coordinator.data.get("MasterInfo", {})
-            .get("LiveHumidity_pc", "")
-        )
-        self._current_temperature = (
-            self._coordinator.data.get("MasterInfo", {})
-            .get("LiveTemp_oC", "")
-        )
+        self._hvac_mode = DEFAULT_MODE
         api_fan_mode = (
             self._coordinator.data.get("UserAirconSettings", {})
-            .get("FanMode", "").upper()
+            .get("FanMode", DEFAULT_MODE).upper()
         )
-        self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
+        self._attr_fan_mode = FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
         self._attr_fan_modes = ["auto", "low", "medium", "high"]
         self._ac_unit = ac_unit
-        self._min_temperature = (
-            self._coordinator.data.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Min", "")
-        )
-        self._max_temperature = (
-            self._coordinator.data.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Max", "")
-        )
+
+    @property
+    def _status(self):
+        """Shortcut to coordinator data."""
+        return self._coordinator.data
 
     @property
     def name(self) -> str:
@@ -116,7 +106,7 @@ class ActronSystemClimate(ClimateEntity):
         """Return a unique ID."""
         return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
 
-    @property
+    @cached_property
     def hvac_modes(self) -> list[HVACMode]:
         """Return HVAC Modes."""
         return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
@@ -126,7 +116,7 @@ class ActronSystemClimate(ClimateEntity):
         """Return the current fan mode."""
         return self._attr_fan_mode
 
-    @property
+    @cached_property
     def fan_modes(self) -> list[str]:
         """Return the list of available fan modes."""
         return list(FAN_MODE_MAPPING.keys())
@@ -139,34 +129,38 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def current_humidity(self) -> float:
         """Return the current humidity"""
-        return self._current_humidity
+        return (
+            self._status.get("MasterInfo", {})
+            .get("LiveHumidity_pc", DEFAULT_HUMIDITY)
+        )
 
     @property
     def current_temperature(self) -> float:
         """Return the current temperature"""
-        return self._current_temperature
+        return (
+            self._status.get("MasterInfo", {})
+            .get("LiveTemp_oC", DEFAULT_TEMPERATURE)
+        )
 
     @property
     def target_temperature(self) -> float:
         """Return the current temperature"""
-        return self._target_temperature
+        return (
+            self._status.get("UserAirconSettings", {})
+            .get("TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE)
+        )
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
-        return (
-            ClimateEntityFeature.TARGET_TEMPERATURE 
-            | ClimateEntityFeature.FAN_MODE 
-            | ClimateEntityFeature.TURN_ON 
-            | ClimateEntityFeature.TURN_OFF
-        )
+        return SUPPORTED_FEATURES
 
     @property
     def state(self) -> HVACMode:
         """Return the HVAC mode."""
         raw_mode = (
-            self._coordinator.data.get("UserAirconSettings", {})
-            .get("Mode", "")
+            self._status.get("UserAirconSettings", {})
+            .get("Mode", DEFAULT_MODE)
         )
         
         # Map API modes to Home Assistant HVAC modes
@@ -175,21 +169,25 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature that can be set."""
-        return self._min_temperature
+        return (
+            self._coordinator.data.get("NV_Limits", {})
+            .get("UserSetpoint_oC", {})
+            .get("setCool_Min", DEFAULT_TEMP_MIN)
+        )
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature that can be set."""
-        return self._max_temperature
+        return (
+            self._coordinator.data.get("NV_Limits", {})
+            .get("UserSetpoint_oC", {})
+            .get("setCool_Max", DEFAULT_TEMP_MAX)
+        )
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
         api_fan_mode = FAN_MODE_MAPPING.get(fan_mode.lower())
-        if api_fan_mode is None:
-            raise ValueError(f"Fan mode '{fan_mode}' is not valid. Valid modes are: {list(FAN_MODE_MAPPING.keys())}")
-        
         await self._api.set_fan_mode(self._serial_number, fan_mode=api_fan_mode)
-        self._attr_fan_mode = fan_mode
         self.async_write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
@@ -200,13 +198,16 @@ class ActronSystemClimate(ClimateEntity):
             await self._api.set_system_mode(
                 self._serial_number, is_on=True, mode=hvac_mode
             )
-        self._hvac_mode = hvac_mode
         self.async_write_ha_state()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set the temperature."""
         temp = kwargs.get("temperature")
         mode = self._hvac_mode.lower()
+
+        if not (self.min_temp <= temp <= self.max_temp):
+            raise ValueError(f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp}).")
+
         if mode == "cool":
             await self._api.set_temperature(
                 self._serial_number, mode="COOL", temperature=temp
@@ -221,14 +222,12 @@ class ActronSystemClimate(ClimateEntity):
                 mode="AUTO",
                 temperature={"cool": temp, "heat": temp},
             )
-        self._target_temperature = temp
         self.async_write_ha_state()
 
     async def async_turn_on_continuous(self, continuous: bool) -> None:
         """Set the continuous mode."""
-        self._continuous = continuous
         await self._api.set_fan_mode(
-            self._serial_number, fan_mode=self._fan_mode, continuous=continuous
+            self._serial_number, fan_mode=self._attr_fan_mode, continuous=continuous
         )
         self.async_write_ha_state()
 
@@ -238,35 +237,13 @@ class ActronSystemClimate(ClimateEntity):
         status = self._coordinator.data
 
         raw_mode = (
-            status.get("UserAirconSettings", {})
-            .get("Mode", "OFF")
+            self._status.get("UserAirconSettings", {})
+            .get("Mode", DEFAULT_MODE)
         )
         self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
-        self._target_temperature = (
-            status.get("UserAirconSettings", {})
-            .get("TemperatureSetpoint_Cool_oC", "")
-        )
-        self._current_humidity = (
-            status.get("MasterInfo", {})
-            .get("LiveHumidity_pc", "")
-        )
-        self._current_temperature = (
-            status.get("MasterInfo", {})
-            .get("LiveTemp_oC", "")
-        )
         api_fan_mode = (
-            status.get("UserAirconSettings", {})
-            .get("FanMode", "").upper()
+            self._status.get("UserAirconSettings", {})
+            .get("FanMode", DEFAULT_MODE).upper()
         )
-        self._attr_fan_mode = {v: k for k, v in FAN_MODE_MAPPING.items()}.get(api_fan_mode, "auto")
-        self._min_temperature = (
-            self._coordinator.data.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Min", "")
-        )
-        self._max_temperature = (
-            self._coordinator.data.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Max", "")
-        )
+        self._attr_fan_mode = FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
 

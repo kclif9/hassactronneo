@@ -2,3 +2,7 @@
 
 DOMAIN = "actronair_neo"
 PLATFORMS = ["climate", "sensor", "switch"]
+
+ERROR_CANNOT_CONNECT = "cannot_connect"
+ERROR_NO_SYSTEMS_FOUND = "no_systems_found"
+ERROR_UNKNOWN = "unknown_error"

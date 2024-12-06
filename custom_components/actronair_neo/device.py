@@ -2,6 +2,8 @@
 
 from .const import DOMAIN
 
+UNKNOWN_STATUS = "Unknown"
+
 class ACUnit:
     """Representation of an Actron Neo Air Conditioner device."""
 
@@ -13,11 +15,11 @@ class ACUnit:
         self._name = system["_embedded"]["ac-system"][0]["description"]
         self._firmware_version = (
             self._status.get("AirconSystem", {})
-            .get("MasterWCFirmwareVersion", "Unknown")
+            .get("MasterWCFirmwareVersion", UNKNOWN_STATUS)
         )
         self._model_name = (
             self._status.get("AirconSystem", {})
-            .get("MasterWCModel", "Unknown")
+            .get("MasterWCModel", UNKNOWN_STATUS)
         )
 
     @property
@@ -70,6 +72,7 @@ class ACZone:
         ac_unit_entity_id = self._ac_unit.unique_id
         return f"{ac_unit_entity_id}_{self._name.replace(' ', '_').lower()}"
 
+    @property
     def zone_number(self) -> int:
         """Return the zone number."""
         return self._zone_number
