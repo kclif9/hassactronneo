@@ -110,6 +110,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the Actron Air Neo integration."""
+    await async_unload_entry(hass, entry)
+    await async_setup_entry(hass, entry)
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_forward_entry_unload(entry, PLATFORMS)

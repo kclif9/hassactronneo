@@ -1,5 +1,8 @@
 """Sensor platform for Actron Air Neo integration."""
 
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -50,7 +53,7 @@ async def async_setup_entry(
             "compressor_chasing_temperature",
             ["LiveAircon"],
             "CompressorChasingTemperature",
-            "°C",
+            SensorDeviceClass.TEMPERATURE,
             True,
         ),
         (
@@ -58,7 +61,7 @@ async def async_setup_entry(
             "compressor_live_temperature",
             ["LiveAircon"],
             "CompressorLiveTemperature",
-            "°C",
+            SensorDeviceClass.TEMPERATURE,
             True,
         ),
         (
@@ -82,7 +85,7 @@ async def async_setup_entry(
             "compressor_speed",
             ["LiveAircon", "OutdoorUnit"],
             "CompSpeed",
-            "rpm",
+            SensorDeviceClass.SPEED,
             True,
         ),
         (
@@ -90,7 +93,7 @@ async def async_setup_entry(
             "compressor_power",
             ["LiveAircon", "OutdoorUnit"],
             "CompPower",
-            "W",
+            SensorDeviceClass.POWER,
             True,
         ),
         (
@@ -98,7 +101,7 @@ async def async_setup_entry(
             "outdoor_temperature",
             ["MasterInfo"],
             "LiveOutdoorTemp_oC",
-            "°C",
+            SensorDeviceClass.TEMPERATURE,
             False
         ),
         (
@@ -106,7 +109,7 @@ async def async_setup_entry(
             "humidity",
             ["MasterInfo"],
             "LiveHumidity_pc",
-            "%",
+            SensorDeviceClass.HUMIDITY,
             False
         ),
     ]
