@@ -20,7 +20,7 @@ class EntitySensor(CoordinatorEntity, Entity):
         path,
         key,
         device_info,
-        unit_of_measurement=None,
+        device_class=None,
         is_diagnostic=False,
     ) -> None:
         """Initialise diagnostic sensor."""
@@ -29,8 +29,8 @@ class EntitySensor(CoordinatorEntity, Entity):
         self._path = path if isinstance(path, list) else [path]  # Ensure path is a list
         self._key = key
         self._device_info = device_info
-        self._unit_of_measurement = unit_of_measurement
         self._is_diagnostic = is_diagnostic
+        self._attr_device_class = device_class
         self._attr_translation_key = translation_key
         self._attr_unique_id = "_".join(
             [
@@ -52,11 +52,6 @@ class EntitySensor(CoordinatorEntity, Entity):
                 data = data.get(key, {})
             return data.get(self._key, None)
         return None
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return self._unit_of_measurement
 
     @property
     def device_info(self):
