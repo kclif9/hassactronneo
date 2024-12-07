@@ -3,6 +3,7 @@
 from typing import Any
 
 from actron_neo_api import ActronNeoAPI
+from .device import ACUnit
 
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -58,10 +59,11 @@ async def async_setup_entry(
     api = data["api"]
     coordinator = data["coordinator"]
     ac_unit = data["ac_unit"]
+    entity_prefix = data["entity_prefix"]
 
     # Add system-wide climate entity
     async_add_entities(
-        [ActronSystemClimate(coordinator, api, ac_unit, entry.data["serial_number"])]
+        [ActronSystemClimate(coordinator, api, ac_unit, entry.data["serial_number"], entity_prefix)]
     )
 
 
@@ -69,14 +71,14 @@ class ActronSystemClimate(ClimateEntity):
     """Representation of the Actron Air Neo system."""
 
     def __init__(
-        self, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, ac_unit, serial_number: str
+        self, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, ac_unit: ACUnit, serial_number: str, entity_prefix: str
     ) -> None:
         """Initialise a Actron Air Neo unit."""
         super().__init__()
         self._coordinator = coordinator
         self._api = api
         self._serial_number = serial_number
-        self._name = "Actron Neo"
+        self._entity_prefix = entity_prefix
         self._hvac_mode = DEFAULT_MODE
         api_fan_mode = (
             self._coordinator.data.get("UserAirconSettings", {})
@@ -94,7 +96,7 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def name(self) -> str:
         """Return the unit name."""
-        return self._name
+        return "AC Unit"
 
     @property
     def device_info(self):
@@ -104,7 +106,7 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
+        return f"{self._entity_prefix}_ac_unit"
 
     @property
     def hvac_modes(self) -> list[HVACMode]:

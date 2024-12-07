@@ -28,6 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "api": api,
         "serial_number": serial_number,
+        "entity_prefix": f"actronair_neo_{serial_number}",
     }
 
     # Initialize local state for full update and event tracking

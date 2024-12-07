@@ -12,6 +12,7 @@ from .const import DOMAIN
 from .device import ACZone
 
 _LOGGER = logging.getLogger(__name__)
+EMPTY_STRING = ""
 
 
 async def async_setup_entry(
@@ -48,23 +49,20 @@ async def async_setup_entry(
 class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of the Actron Air Neo continuous fan switch."""
 
+    _attr_has_entity_name = True
+    _attr_translation_key = "continuous_fan"
+
     def __init__(self, api, coordinator, serial_number, ac_unit) -> None:
         """Initialize the continuous fan switch."""
         super().__init__(coordinator)
         self._api = api
         self._serial_number = serial_number
-        self._name = "Continuous Fan"
-        self._ac_unit = ac_unit
+        self._ac_unit = self.ac_unit
 
     @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
+    def device_info(self):
+        """Return the device information for binding to the device."""
+        return self._ac_unit.device_info
 
     @property
     def is_on(self) -> bool:
@@ -73,7 +71,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             fan_mode = (
                 status.get("UserAirconSettings", {})
-                .get("FanMode", "")
+                .get("FanMode", EMPTY_STRING)
             )
             return fan_mode.endswith("+CONT")
         return False
@@ -85,15 +83,10 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             fan_mode = (
                 status.get("UserAirconSettings", {})
-                .get("FanMode", "")
+                .get("FanMode", EMPTY_STRING)
             )
-            return {"fan_mode": fan_mode.replace("+CONT", "")}
+            return {"fan_mode": fan_mode.replace("+CONT", EMPTY_STRING)}
         return {}
-
-    @property
-    def device_info(self):
-        """Return the device information."""
-        return self._ac_unit.device_info
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the continuous fan on."""
@@ -116,7 +109,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             fan_mode = (
                 status.get("UserAirconSettings", {})
-                .get("FanMode", "")
+                .get("FanMode", EMPTY_STRING)
             )
             if fan_mode:
                 new_fan_mode = fan_mode.replace("+CONT", "")
@@ -129,24 +122,22 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 class ZoneSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a zone switch."""
 
+    _attr_has_entity_name = True
+    _attr_translation_key = "zone_enabled"
+
     def __init__(self, api, coordinator, serial_number, ac_zone) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
         self._api = api
-        self._ac_zone = ac_zone
         self._serial_number = serial_number
         self._zone_number = ac_zone.zone_number
-        self._name = f"Zone {self._zone_number} Enabled"
+        self._attr_translation_placeholders = {"zone_number": self._zone_number}
+        self._ac_zone = self.ac_zone
 
     @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"{self._ac_zone.unique_id}_{self._name.replace(' ', '_').lower()}"
+    def device_info(self):
+        """Return the device information for binding to the device."""
+        return self._ac_zone.device_info
 
     @property
     def is_on(self) -> bool:
@@ -155,16 +146,11 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             enabled_zones = (
                 status.get("UserAirconSettings", {})
-                .get("EnabledZones", "")
+                .get("EnabledZones", EMPTY_STRING)
             )
             zone_state = enabled_zones[self._zone_number - 1]
             return zone_state
         return False
-
-    @property
-    def device_info(self):
-        """Return the device information."""
-        return self._ac_zone.device_info
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the zone on."""

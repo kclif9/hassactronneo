@@ -1,0 +1,12 @@
+{
+  "entity": {
+    "switch": {
+      "continuous_fan": {
+        "name": "Continuous Fan"
+      },
+      "zone_enabled": {
+        "name": "Zone {zone_number} Enabled"
+      }
+    }
+  }
+}
