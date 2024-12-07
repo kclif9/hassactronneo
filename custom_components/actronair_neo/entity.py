@@ -3,16 +3,20 @@
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .const import DOMAIN
+
 DIAGNOSTIC_CATEGORY = EntityCategory.DIAGNOSTIC
 
 class EntitySensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         coordinator,
         ac_unit,
-        name,
+        translation_key,
         path,
         key,
         device_info,
@@ -22,22 +26,21 @@ class EntitySensor(CoordinatorEntity, Entity):
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
         self._ac_unit = ac_unit
-        self._name = name
         self._path = path if isinstance(path, list) else [path]  # Ensure path is a list
         self._key = key
         self._device_info = device_info
         self._unit_of_measurement = unit_of_measurement
         self._is_diagnostic = is_diagnostic
-
-    @property
-    def name(self) -> str:
-        """Set the name of the diagnostic sensor."""
-        return self._name
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"{self._ac_unit.unique_id}_{self._name.replace(' ', '_').lower()}"
+        self._attr_translation_key = translation_key
+        self._attr_unique_id = "_".join(
+            [
+                DOMAIN,
+                self._ac_unit._serial_number,
+                "sensor",
+                translation_key,
+            ]
+        )
+        self._attr_device_info = self._ac_unit.device_info
 
     @property
     def state(self):

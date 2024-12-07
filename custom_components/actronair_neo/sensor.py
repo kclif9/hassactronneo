@@ -31,7 +31,7 @@ async def async_setup_entry(
     diagnostic_configs = [
         (
             ac_unit,
-            "Clean Filter",
+            "clean_filter",
             ["Alerts"],
             "CleanFilter",
             None,
@@ -39,7 +39,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Defrost Mode",
+            "defrost_mode",
             ["Alerts"],
             "Defrosting",
             None,
@@ -47,7 +47,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Compressor Chasing Temperature",
+            "compressor_chasing_temperature",
             ["LiveAircon"],
             "CompressorChasingTemperature",
             "°C",
@@ -55,7 +55,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Compressor Live Temperature",
+            "compressor_live_temperature",
             ["LiveAircon"],
             "CompressorLiveTemperature",
             "°C",
@@ -63,7 +63,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Compressor Mode",
+            "compressor_mode",
             ["LiveAircon"],
             "CompressorMode",
             None,
@@ -71,7 +71,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "System On",
+            "system_on",
             ["LiveAircon"],
             "SystemOn",
             None,
@@ -79,7 +79,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Compressor Speed",
+            "compressor_speed",
             ["LiveAircon", "OutdoorUnit"],
             "CompSpeed",
             "rpm",
@@ -87,7 +87,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Compressor Power",
+            "compressor_power",
             ["LiveAircon", "OutdoorUnit"],
             "CompPower",
             "W",
@@ -95,7 +95,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Outdoor Temperature",
+            "outdoor_temperature",
             ["MasterInfo"],
             "LiveOutdoorTemp_oC",
             "°C",
@@ -103,7 +103,7 @@ async def async_setup_entry(
         ),
         (
             ac_unit,
-            "Humidity",
+            "humidity",
             ["MasterInfo"],
             "LiveHumidity_pc",
             "%",
@@ -113,10 +113,10 @@ async def async_setup_entry(
 
     # Create diagnostic sensors
     ac_unit_sensors = []
-    for ac_unit, name, path, key, unit, diagnostic_sensor in diagnostic_configs:
+    for ac_unit, translation_key, path, key, unit, diagnostic_sensor in diagnostic_configs:
         ac_unit_sensors.append(
             EntitySensor(
-                coordinator, ac_unit, name, path, key, ac_unit.device_info, unit, diagnostic_sensor
+                coordinator, ac_unit, translation_key, path, key, ac_unit.device_info, unit, diagnostic_sensor
             )
         )
 
@@ -187,31 +187,28 @@ def create_peripheral_sensors(coordinator, zone_peripheral):
 class BaseZoneSensor(CoordinatorEntity, Entity):
     """Base class for Actron Air Neo sensors."""
 
+    _attr_has_entity_name = True
+
     def __init__(
-        self, coordinator, ac_zone, name, state_key, unit_of_measurement=None
+        self, coordinator, ac_zone, translation_key, state_key, unit_of_measurement=None
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._ac_zone = ac_zone
+        self._attr_translation_key = translation_key
         self._zone_number = ac_zone.zone_number
-        self._name = name
         self._state_key = state_key
         self._unit_of_measurement = unit_of_measurement
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self._ac_zone.device_info['name']} {self._name}"
-
-    @property
-    def unique_id(self):
-        """Return a unique ID for the sensor."""
-        return f"{self._ac_zone.unique_id}_{self._name.lower().replace(' ', '_')}"
-
-    @property
-    def device_info(self):
-        """Return the device information."""
-        return self._ac_zone.device_info
+        self._attr_unique_id = "_".join(
+            [
+                DOMAIN,
+                self._ac_zone._serial,
+                "sensor",
+                translation_key,
+                str(ac_zone.zone_number),
+            ]
+        )
+        self._attr_device_info = self._ac_zone.device_info
 
     @property
     def state(self):
@@ -235,7 +232,7 @@ class ZonePostionSensor(BaseZoneSensor):
 
     def __init__(self, coordinator, ac_zone) -> None:
         """Initialize the position sensor."""
-        super().__init__(coordinator, ac_zone, "Position", "ZonePosition", "%")
+        super().__init__(coordinator, ac_zone, "damper_position", "ZonePosition", "%")
 
 
 class ZoneTemperatureSensor(BaseZoneSensor):
@@ -243,7 +240,7 @@ class ZoneTemperatureSensor(BaseZoneSensor):
 
     def __init__(self, coordinator, ac_zone) -> None:
         """Initialize the temperature sensor."""
-        super().__init__(coordinator, ac_zone, "Temperature", "LiveTemp_oC", "°C")
+        super().__init__(coordinator, ac_zone, "temperature", "LiveTemp_oC", "°C")
 
 
 class ZoneHumiditySensor(BaseZoneSensor):
@@ -251,33 +248,31 @@ class ZoneHumiditySensor(BaseZoneSensor):
 
     def __init__(self, coordinator, ac_zone) -> None:
         """Initialize the humidity sensor."""
-        super().__init__(coordinator, ac_zone, "Humidity", "LiveHumidity_pc", "%")
+        super().__init__(coordinator, ac_zone, "humidity", "LiveHumidity_pc", "%")
 
 
 class BasePeripheralSensor(CoordinatorEntity, Entity):
     """Base class for Actron Air Neo sensors."""
 
+    _attr_has_entity_name = True
+
     def __init__(
-        self, coordinator, zone_peripheral, name, path, key, unit_of_measurement=None
+        self, coordinator, zone_peripheral, translation_key, path, key, unit_of_measurement=None
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._zone_peripheral = zone_peripheral
-        self._name = name
-        self._path = path if isinstance(path, list) else [path]  # Ensure path is a list
+        self._attr_translation_key = translation_key
+        self._path = path if isinstance(path, list) else [path]
         self._key = key
         self._unit_of_measurement = unit_of_measurement
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self._zone_peripheral.device_info['name']} {self._name}"
-
-    @property
-    def unique_id(self):
-        """Return a unique ID for the sensor."""
-        return (
-            f"{self._zone_peripheral.unique_id}_{self._name.lower().replace(' ', '_')}"
+        self._attr_unique_id = "_".join(
+            [
+                DOMAIN,
+                "sensor",
+                translation_key,
+                zone_peripheral._serial,
+            ]
         )
 
     @property
@@ -314,7 +309,7 @@ class PeripheralBatterySensor(BasePeripheralSensor):
         super().__init__(
             coordinator,
             zone_peripheral,
-            "Battery",
+            "battery",
             [],
             "RemainingBatteryCapacity_pc",
             "%",
@@ -329,7 +324,7 @@ class PeripheralTemperatureSensor(BasePeripheralSensor):
         super().__init__(
             coordinator,
             zone_peripheral,
-            "Temperature",
+            "temperature",
             ["SensorInputs", "SHTC1"],
             "Temperature_oC",
             "°C",
@@ -344,7 +339,7 @@ class PeripheralHumiditySensor(BasePeripheralSensor):
         super().__init__(
             coordinator,
             zone_peripheral,
-            "Humidity",
+            "humidity",
             ["SensorInputs", "SHTC1"],
             "RelativeHumidity_pc",
             "%",

@@ -70,6 +70,11 @@ async def async_setup_entry(
 class ActronSystemClimate(ClimateEntity):
     """Representation of the Actron Air Neo system."""
 
+    _attr_has_entity_name = True
+    _attr_translation_key = "ac_unit"
+    _attr_fan_modes = ["auto", "low", "medium", "high"]
+    _hvac_mode = DEFAULT_MODE
+
     def __init__(
         self, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, ac_unit: ACUnit, serial_number: str, entity_prefix: str
     ) -> None:
@@ -79,14 +84,17 @@ class ActronSystemClimate(ClimateEntity):
         self._api = api
         self._serial_number = serial_number
         self._entity_prefix = entity_prefix
-        self._hvac_mode = DEFAULT_MODE
-        api_fan_mode = (
-            self._coordinator.data.get("UserAirconSettings", {})
-            .get("FanMode", DEFAULT_MODE).upper()
-        )
-        self._attr_fan_mode = FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
-        self._attr_fan_modes = ["auto", "low", "medium", "high"]
         self._ac_unit = ac_unit
+        self._attr_translation_placeholders = {"serial_number": self._serial_number}
+        self._attr_name = f"AC Unit {self._serial_number}"
+        self._attr_unique_id = "_".join(
+            [
+                DOMAIN,
+                self._serial_number,
+                "climate",
+                self._attr_name,
+            ]
+        )
 
     @property
     def _status(self):
@@ -94,19 +102,9 @@ class ActronSystemClimate(ClimateEntity):
         return self._coordinator.data
 
     @property
-    def name(self) -> str:
-        """Return the unit name."""
-        return "AC Unit"
-
-    @property
     def device_info(self):
         """Return the device information."""
         return self._ac_unit.device_info
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"{self._entity_prefix}_ac_unit"
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -116,7 +114,11 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def fan_mode(self) -> str:
         """Return the current fan mode."""
-        return self._attr_fan_mode
+        api_fan_mode = (
+            self._coordinator.data.get("UserAirconSettings", {})
+            .get("FanMode", DEFAULT_MODE).upper()
+        )
+        return FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
 
     @property
     def fan_modes(self) -> list[str]:

@@ -5,6 +5,7 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -12,7 +13,6 @@ from .const import DOMAIN
 from .device import ACZone
 
 _LOGGER = logging.getLogger(__name__)
-EMPTY_STRING = ""
 
 
 async def async_setup_entry(
@@ -33,14 +33,14 @@ async def async_setup_entry(
     zones = status.get("RemoteZoneInfo", [])
     entities = []
 
+    # Create a switch for the continuous fan
+    entities.append(ContinuousFanSwitch(api, coordinator, serial_number, ac_unit))
+
     for zone_number, zone in enumerate(zones, start=1):
         if zone["NV_Exists"]:
             zone_name = zone["NV_Title"]
             ac_zone = ACZone(ac_unit, zone_number, zone_name)
             entities.append(ZoneSwitch(api, coordinator, serial_number, ac_zone))
-
-    # Create a switch for the continuous fan
-    entities.append(ContinuousFanSwitch(api, coordinator, serial_number, ac_unit))
 
     # Add all switches
     async_add_entities(entities)
@@ -57,11 +57,20 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         super().__init__(coordinator)
         self._api = api
         self._serial_number = serial_number
-        self._ac_unit = self.ac_unit
+        self._ac_unit = ac_unit
+        self._attr_name = "Continuous Fan"
+        self._attr_unique_id = "_".join(
+            [
+                DOMAIN,
+                self._serial_number,
+                "switch",
+                self._attr_name,
+            ]
+        )
 
     @property
     def device_info(self):
-        """Return the device information for binding to the device."""
+        """Return the device information."""
         return self._ac_unit.device_info
 
     @property
@@ -71,7 +80,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             fan_mode = (
                 status.get("UserAirconSettings", {})
-                .get("FanMode", EMPTY_STRING)
+                .get("FanMode", "")
             )
             return fan_mode.endswith("+CONT")
         return False
@@ -83,9 +92,9 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             fan_mode = (
                 status.get("UserAirconSettings", {})
-                .get("FanMode", EMPTY_STRING)
+                .get("FanMode", "")
             )
-            return {"fan_mode": fan_mode.replace("+CONT", EMPTY_STRING)}
+            return {"fan_mode": fan_mode.replace("+CONT", "")}
         return {}
 
     async def async_turn_on(self, **kwargs) -> None:
@@ -109,7 +118,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             fan_mode = (
                 status.get("UserAirconSettings", {})
-                .get("FanMode", EMPTY_STRING)
+                .get("FanMode", "")
             )
             if fan_mode:
                 new_fan_mode = fan_mode.replace("+CONT", "")
@@ -132,11 +141,20 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         self._serial_number = serial_number
         self._zone_number = ac_zone.zone_number
         self._attr_translation_placeholders = {"zone_number": self._zone_number}
-        self._ac_zone = self.ac_zone
+        self._ac_zone = ac_zone
+        self._attr_name = f"Zone {self._zone_number} Enabled"
+        self._attr_unique_id = "_".join(
+            [
+                DOMAIN,
+                self._serial_number,
+                "switch",
+                self._attr_name,
+            ]
+        )
 
     @property
     def device_info(self):
-        """Return the device information for binding to the device."""
+        """Return the device information."""
         return self._ac_zone.device_info
 
     @property
@@ -146,7 +164,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         if status:
             enabled_zones = (
                 status.get("UserAirconSettings", {})
-                .get("EnabledZones", EMPTY_STRING)
+                .get("EnabledZones", "")
             )
             zone_state = enabled_zones[self._zone_number - 1]
             return zone_state
