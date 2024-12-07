@@ -240,14 +240,19 @@ class ActronSystemClimate(ClimateEntity):
         await self._coordinator.async_request_refresh()
         status = self._coordinator.data
 
-        raw_mode = (
-            self._status.get("UserAirconSettings", {})
-            .get("Mode", DEFAULT_MODE)
-        )
-        self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
-        api_fan_mode = (
-            self._status.get("UserAirconSettings", {})
-            .get("FanMode", DEFAULT_MODE).upper()
-        )
-        self._attr_fan_mode = FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
+        system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
+
+        if system_state == False:
+            self._hvac_mode = HVAC_MODE_OFF
+        else:
+            raw_mode = (
+                self._status.get("UserAirconSettings", {})
+                .get("Mode", DEFAULT_MODE)
+            )
+            self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
+            api_fan_mode = (
+                self._status.get("UserAirconSettings", {})
+                .get("FanMode", DEFAULT_MODE).upper()
+            )
+            self._attr_fan_mode = FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
 
