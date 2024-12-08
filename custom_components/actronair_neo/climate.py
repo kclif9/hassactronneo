@@ -162,13 +162,16 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def state(self) -> HVACMode:
         """Return the HVAC mode."""
-        raw_mode = (
+
+        system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
+        if system_state == False:
+            return HVAC_MODE_OFF
+
+        hvac_mode = (
             self._status.get("UserAirconSettings", {})
             .get("Mode", DEFAULT_MODE)
         )
-        
-        # Map API modes to Home Assistant HVAC modes
-        return HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
+        return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
 
     @property
     def min_temp(self) -> float:
@@ -234,25 +237,4 @@ class ActronSystemClimate(ClimateEntity):
             self._serial_number, fan_mode=self._attr_fan_mode, continuous=continuous
         )
         self.async_write_ha_state()
-
-    async def async_update(self) -> None:
-        """Fetch new state data for the climate entity."""
-        await self._coordinator.async_request_refresh()
-        status = self._coordinator.data
-
-        system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
-
-        if system_state == False:
-            self._hvac_mode = HVAC_MODE_OFF
-        else:
-            raw_mode = (
-                self._status.get("UserAirconSettings", {})
-                .get("Mode", DEFAULT_MODE)
-            )
-            self._hvac_mode = HVAC_MODE_MAPPING.get(raw_mode, HVAC_MODE_OFF)
-            api_fan_mode = (
-                self._status.get("UserAirconSettings", {})
-                .get("FanMode", DEFAULT_MODE).upper()
-            )
-            self._attr_fan_mode = FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
 
