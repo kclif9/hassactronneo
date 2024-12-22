@@ -1,0 +1,16 @@
+{
+    "python.pythonPath": "${workspaceFolder}/venv/bin/python",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.associations": {
+        "*.yaml": "yaml"
+    },
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": ".github/workflows/*"
+    },
+    "[python]": {
+        "editor.formatOnSave": true
+    }
+}
