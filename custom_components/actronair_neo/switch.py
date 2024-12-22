@@ -78,10 +78,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         """Return true if the switch is on."""
         status = self.coordinator.data
         if status:
-            fan_mode = (
-                status.get("UserAirconSettings", {})
-                .get("FanMode", "")
-            )
+            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
             return fan_mode.endswith("+CONT")
         return False
 
@@ -90,10 +87,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         """Extra state attributes."""
         status = self.coordinator.data
         if status:
-            fan_mode = (
-                status.get("UserAirconSettings", {})
-                .get("FanMode", "")
-            )
+            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
             return {"fan_mode": fan_mode.replace("+CONT", "")}
         return {}
 
@@ -101,10 +95,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         """Turn the continuous fan on."""
         status = self.coordinator.data
         if status:
-            fan_mode = (
-                status.get("UserAirconSettings", {})
-                .get("FanMode", "")
-            )
+            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
             if fan_mode:
                 new_fan_mode = f"{fan_mode.replace('+CONT', '')}+CONT"
                 await self._api.set_fan_mode(
@@ -116,10 +107,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         """Turn the continuous fan off."""
         status = self.coordinator.data
         if status:
-            fan_mode = (
-                status.get("UserAirconSettings", {})
-                .get("FanMode", "")
-            )
+            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
             if fan_mode:
                 new_fan_mode = fan_mode.replace("+CONT", "")
                 await self._api.set_fan_mode(
@@ -162,12 +150,20 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         """Return true if the switch is on."""
         status = self.coordinator.data
         if status:
-            enabled_zones = (
-                status.get("UserAirconSettings", {})
-                .get("EnabledZones", "")
-            )
-            zone_state = enabled_zones[self._zone_number - 1]
-            return zone_state
+            enabled_zones = status.get("UserAirconSettings", {}).get("EnabledZones", [])
+            _LOGGER.error(f"Zones: {enabled_zones}")
+            if isinstance(enabled_zones, list):
+                try:
+                    # Ensure the zone number maps correctly
+                    zone_state = enabled_zones[self._zone_number - 1]
+                    _LOGGER.error(f"Zone number {self._zone_number} is: {zone_state}")
+                    return zone_state
+                except IndexError:
+                    _LOGGER.error(
+                        f"Zone number {self._zone_number} out of range for EnabledZones: {enabled_zones}"
+                    )
+            else:
+                _LOGGER.error(f"EnabledZones is not a list: {enabled_zones}")
         return False
 
     async def async_turn_on(self, **kwargs) -> None:
@@ -187,3 +183,9 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
             is_enabled=False,
         )
         await self.coordinator.async_request_refresh()
+
+    async def async_update(self):
+        """Fetch the latest data and refresh state."""
+        _LOGGER.debug(f"Updating Zone {self.zone_index} state from coordinator.")
+        await self.coordinator.async_request_refresh()
+        self.async_write_ha_state()

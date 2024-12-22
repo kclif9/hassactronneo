@@ -7,6 +7,7 @@ from .const import DOMAIN
 
 DIAGNOSTIC_CATEGORY = EntityCategory.DIAGNOSTIC
 
+
 class EntitySensor(CoordinatorEntity, Entity):
     """Representation of a diagnostic sensor."""
 

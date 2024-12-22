@@ -1,7 +1,12 @@
 {
-    "python.pythonPath": "${workspaceFolder}/venv/bin/python",
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.linting.flake8Args": [
+        "--max-line-length=88"
+    ],
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,
     "files.associations": {

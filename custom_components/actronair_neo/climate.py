@@ -37,7 +37,13 @@ HVAC_MODE_AUTO = HVACMode.AUTO
 HVAC_MODE_FAN = HVACMode.FAN_ONLY
 HVAC_MODE_MAPPING = {
     mode.value.upper(): mode
-    for mode in [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO, HVACMode.FAN_ONLY]
+    for mode in [
+        HVACMode.OFF,
+        HVACMode.COOL,
+        HVACMode.HEAT,
+        HVACMode.AUTO,
+        HVACMode.FAN_ONLY,
+    ]
 }
 SUPPORTED_FEATURES = (
     ClimateEntityFeature.TARGET_TEMPERATURE
@@ -63,7 +69,11 @@ async def async_setup_entry(
 
     # Add system-wide climate entity
     async_add_entities(
-        [ActronSystemClimate(coordinator, api, ac_unit, entry.data["serial_number"], entity_prefix)]
+        [
+            ActronSystemClimate(
+                coordinator, api, ac_unit, entry.data["serial_number"], entity_prefix
+            )
+        ]
     )
 
 
@@ -76,7 +86,12 @@ class ActronSystemClimate(ClimateEntity):
     _hvac_mode = DEFAULT_MODE
 
     def __init__(
-        self, coordinator: DataUpdateCoordinator, api: ActronNeoAPI, ac_unit: ACUnit, serial_number: str, entity_prefix: str
+        self,
+        coordinator: DataUpdateCoordinator,
+        api: ActronNeoAPI,
+        ac_unit: ACUnit,
+        serial_number: str,
+        entity_prefix: str,
     ) -> None:
         """Initialise a Actron Air Neo unit."""
         super().__init__()
@@ -116,7 +131,8 @@ class ActronSystemClimate(ClimateEntity):
         """Return the current fan mode."""
         api_fan_mode = (
             self._coordinator.data.get("UserAirconSettings", {})
-            .get("FanMode", DEFAULT_MODE).upper()
+            .get("FanMode", DEFAULT_MODE)
+            .upper()
         )
         return FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
 
@@ -133,25 +149,22 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def current_humidity(self) -> float:
         """Return the current humidity"""
-        return (
-            self._status.get("MasterInfo", {})
-            .get("LiveHumidity_pc", DEFAULT_HUMIDITY)
+        return self._status.get("MasterInfo", {}).get(
+            "LiveHumidity_pc", DEFAULT_HUMIDITY
         )
 
     @property
     def current_temperature(self) -> float:
         """Return the current temperature"""
-        return (
-            self._status.get("MasterInfo", {})
-            .get("LiveTemp_oC", DEFAULT_TEMPERATURE)
+        return self._status.get("MasterInfo", {}).get(
+            "LiveTemp_oC", DEFAULT_TEMPERATURE
         )
 
     @property
     def target_temperature(self) -> float:
         """Return the current temperature"""
-        return (
-            self._status.get("UserAirconSettings", {})
-            .get("TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE)
+        return self._status.get("UserAirconSettings", {}).get(
+            "TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE
         )
 
     @property
@@ -167,10 +180,7 @@ class ActronSystemClimate(ClimateEntity):
         if system_state == False:
             return HVAC_MODE_OFF
 
-        hvac_mode = (
-            self._status.get("UserAirconSettings", {})
-            .get("Mode", DEFAULT_MODE)
-        )
+        hvac_mode = self._status.get("UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
         return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
 
     @property
@@ -213,7 +223,9 @@ class ActronSystemClimate(ClimateEntity):
         mode = self._hvac_mode.lower()
 
         if not (self.min_temp <= temp <= self.max_temp):
-            raise ValueError(f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp}).")
+            raise ValueError(
+                f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp})."
+            )
 
         if mode == "cool":
             await self._api.set_temperature(
@@ -237,4 +249,3 @@ class ActronSystemClimate(ClimateEntity):
             self._serial_number, fan_mode=self._attr_fan_mode, continuous=continuous
         )
         self.async_write_ha_state()
-

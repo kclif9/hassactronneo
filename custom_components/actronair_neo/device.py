@@ -4,6 +4,7 @@ from .const import DOMAIN
 
 UNKNOWN_STATUS = "Unknown"
 
+
 class ACUnit:
     """Representation of an Actron Neo Air Conditioner device."""
 
@@ -13,13 +14,11 @@ class ACUnit:
         self._status = status
         self._manufacturer = "Actron Air"
         self._name = system["_embedded"]["ac-system"][0]["description"]
-        self._firmware_version = (
-            self._status.get("AirconSystem", {})
-            .get("MasterWCFirmwareVersion", UNKNOWN_STATUS)
+        self._firmware_version = self._status.get("AirconSystem", {}).get(
+            "MasterWCFirmwareVersion", UNKNOWN_STATUS
         )
-        self._model_name = (
-            self._status.get("AirconSystem", {})
-            .get("MasterWCModel", UNKNOWN_STATUS)
+        self._model_name = self._status.get("AirconSystem", {}).get(
+            "MasterWCModel", UNKNOWN_STATUS
         )
 
     @property

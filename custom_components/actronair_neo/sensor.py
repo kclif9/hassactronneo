@@ -102,7 +102,7 @@ async def async_setup_entry(
             ["MasterInfo"],
             "LiveOutdoorTemp_oC",
             SensorDeviceClass.TEMPERATURE,
-            False
+            False,
         ),
         (
             ac_unit,
@@ -110,16 +110,30 @@ async def async_setup_entry(
             ["MasterInfo"],
             "LiveHumidity_pc",
             SensorDeviceClass.HUMIDITY,
-            False
+            False,
         ),
     ]
 
     # Create diagnostic sensors
     ac_unit_sensors = []
-    for ac_unit, translation_key, path, key, unit, diagnostic_sensor in diagnostic_configs:
+    for (
+        ac_unit,
+        translation_key,
+        path,
+        key,
+        unit,
+        diagnostic_sensor,
+    ) in diagnostic_configs:
         ac_unit_sensors.append(
             EntitySensor(
-                coordinator, ac_unit, translation_key, path, key, ac_unit.device_info, unit, diagnostic_sensor
+                coordinator,
+                ac_unit,
+                translation_key,
+                path,
+                key,
+                ac_unit.device_info,
+                unit,
+                diagnostic_sensor,
             )
         )
 
@@ -139,9 +153,7 @@ async def async_setup_entry(
             zone_sensors.extend(create_zone_sensors(coordinator, ac_zone))
 
     # Fetch Peripherals
-    peripherals = (
-        status.get("AirconSystem", {}).get("Peripherals", [])
-    )
+    peripherals = status.get("AirconSystem", {}).get("Peripherals", [])
 
     for peripheral in peripherals:
         # Create zone sensor device
@@ -216,9 +228,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        zones = self.coordinator.data.get(
-            "RemoteZoneInfo", []
-        )
+        zones = self.coordinator.data.get("RemoteZoneInfo", [])
         for zone_number, zone in enumerate(zones, start=1):
             if zone_number == self._zone_number:
                 return zone.get(self._state_key, None)
@@ -260,7 +270,13 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     _attr_has_entity_name = True
 
     def __init__(
-        self, coordinator, zone_peripheral, translation_key, path, key, unit_of_measurement=None
+        self,
+        coordinator,
+        zone_peripheral,
+        translation_key,
+        path,
+        key,
+        unit_of_measurement=None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -287,9 +303,8 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     def state(self):
         """Return the state of the sensor."""
         # Look up the state using the state key in the data.
-        data_source = (
-            self.coordinator.data.get("AirconSystem", {})
-            .get("Peripherals", [])
+        data_source = self.coordinator.data.get("AirconSystem", {}).get(
+            "Peripherals", []
         )
         for peripheral in data_source:
             if peripheral["LogicalAddress"] == self._zone_peripheral.logical_address():

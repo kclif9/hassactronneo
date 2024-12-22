@@ -9,6 +9,7 @@ from .const import DOMAIN, ERROR_CANNOT_CONNECT, ERROR_NO_SYSTEMS_FOUND, ERROR_U
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Actron Air Neo."""
 
@@ -46,7 +47,10 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         data_schema=vol.Schema(
                             {
                                 vol.Required("selected_system"): vol.In(
-                                    {system["serial"]: system["description"] for system in ac_systems}
+                                    {
+                                        system["serial"]: system["description"]
+                                        for system in ac_systems
+                                    }
                                 )
                             }
                         ),
@@ -80,11 +84,18 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_select_system(self, user_input=None) -> config_entries.ConfigFlowResult:
+    async def async_step_select_system(
+        self, user_input=None
+    ) -> config_entries.ConfigFlowResult:
         """Handle system selection step."""
         ac_systems = self.context["ac_systems"]
         selected_system = next(
-            (system for system in ac_systems if system["serial"] == user_input["selected_system"]), None
+            (
+                system
+                for system in ac_systems
+                if system["serial"] == user_input["selected_system"]
+            ),
+            None,
         )
         if not selected_system:
             return self.async_abort(reason=ERROR_NO_SYSTEMS_FOUND)
@@ -98,7 +109,9 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
         return ActronNeoOptionsFlowHandler(config_entry)
 
