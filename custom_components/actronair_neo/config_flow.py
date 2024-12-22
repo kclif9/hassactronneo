@@ -64,8 +64,6 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     },
                 )
 
-            except ActronNeoAPI.ConnectionError:
-                errors["base"] = ERROR_CANNOT_CONNECT
             except ValueError:
                 errors["base"] = ERROR_NO_SYSTEMS_FOUND
             except Exception as err:
