@@ -156,7 +156,6 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
                 try:
                     # Ensure the zone number maps correctly
                     zone_state = enabled_zones[self._zone_number - 1]
-                    _LOGGER.error(f"Zone number {self._zone_number} is: {zone_state}")
                     return zone_state
                 except IndexError:
                     _LOGGER.error(
