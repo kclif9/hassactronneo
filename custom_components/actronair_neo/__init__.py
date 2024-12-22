@@ -32,6 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Store objects in hass.data
     hass.data[DOMAIN][entry.entry_id] = {
+        "api": api,
         "coordinator": coordinator,
         "ac_unit": ac_unit,
     }
