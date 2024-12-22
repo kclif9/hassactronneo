@@ -35,6 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "api": api,
         "coordinator": coordinator,
         "ac_unit": ac_unit,
+        "serial_number": serial_number,
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
