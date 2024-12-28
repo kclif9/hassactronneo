@@ -4,7 +4,7 @@ import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -67,6 +67,11 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
             ]
         )
         self._is_on = self.is_on
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
@@ -145,6 +150,11 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
                 self._attr_name,
             ]
         )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
