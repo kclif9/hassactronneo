@@ -151,12 +151,10 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         status = self.coordinator.data
         if status:
             enabled_zones = status.get("UserAirconSettings", {}).get("EnabledZones", [])
-            _LOGGER.error(f"Zones: {enabled_zones}")
             if isinstance(enabled_zones, list):
                 try:
                     # Ensure the zone number maps correctly
                     zone_state = enabled_zones[self._zone_number - 1]
-                    _LOGGER.error(f"Zone number {self._zone_number} is: {zone_state}")
                     return zone_state
                 except IndexError:
                     _LOGGER.error(

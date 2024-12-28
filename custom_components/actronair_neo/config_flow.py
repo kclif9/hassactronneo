@@ -34,9 +34,8 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await api.request_pairing_token("HomeAssistant", "ha-instance-id")
                 await api.request_bearer_token()
 
-                ac_systems = (
-                    await api.get_ac_systems().get("_embedded", {}).get("ac-system", [])
-                )
+                systems = await api.get_ac_systems()
+                ac_systems = systems.get("_embedded", {}).get("ac-system", [])
                 if not ac_systems:
                     raise ValueError("No AC systems found.")
 
@@ -67,8 +66,6 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     },
                 )
 
-            except ActronNeoAPI.ConnectionError:
-                errors["base"] = ERROR_CANNOT_CONNECT
             except ValueError:
                 errors["base"] = ERROR_NO_SYSTEMS_FOUND
             except Exception as err:

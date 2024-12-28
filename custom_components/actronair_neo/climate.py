@@ -65,13 +65,12 @@ async def async_setup_entry(
     api = data["api"]
     coordinator = data["coordinator"]
     ac_unit = data["ac_unit"]
-    entity_prefix = data["entity_prefix"]
 
     # Add system-wide climate entity
     async_add_entities(
         [
             ActronSystemClimate(
-                coordinator, api, ac_unit, entry.data["serial_number"], entity_prefix
+                coordinator, api, ac_unit, entry.data["serial_number"]
             )
         ]
     )
@@ -91,25 +90,16 @@ class ActronSystemClimate(ClimateEntity):
         api: ActronNeoAPI,
         ac_unit: ACUnit,
         serial_number: str,
-        entity_prefix: str,
     ) -> None:
-        """Initialise a Actron Air Neo unit."""
+        """Initialize an Actron Air Neo unit."""
         super().__init__()
         self._coordinator = coordinator
         self._api = api
         self._serial_number = serial_number
-        self._entity_prefix = entity_prefix
         self._ac_unit = ac_unit
         self._attr_translation_placeholders = {"serial_number": self._serial_number}
         self._attr_name = f"AC Unit {self._serial_number}"
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                self._serial_number,
-                "climate",
-                self._attr_name,
-            ]
-        )
+        self._attr_unique_id = f"{DOMAIN}_{self._serial_number}_climate"
 
     @property
     def _status(self):
@@ -148,21 +138,21 @@ class ActronSystemClimate(ClimateEntity):
 
     @property
     def current_humidity(self) -> float:
-        """Return the current humidity"""
+        """Return the current humidity."""
         return self._status.get("MasterInfo", {}).get(
             "LiveHumidity_pc", DEFAULT_HUMIDITY
         )
 
     @property
     def current_temperature(self) -> float:
-        """Return the current temperature"""
+        """Return the current temperature."""
         return self._status.get("MasterInfo", {}).get(
             "LiveTemp_oC", DEFAULT_TEMPERATURE
         )
 
     @property
     def target_temperature(self) -> float:
-        """Return the current temperature"""
+        """Return the target temperature."""
         return self._status.get("UserAirconSettings", {}).get(
             "TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE
         )
@@ -175,7 +165,6 @@ class ActronSystemClimate(ClimateEntity):
     @property
     def state(self) -> HVACMode:
         """Return the HVAC mode."""
-
         system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
         if system_state == False:
             return HVAC_MODE_OFF
