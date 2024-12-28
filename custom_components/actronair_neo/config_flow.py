@@ -107,21 +107,6 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-        """Handle migration of a config entry."""
-        if config_entry.version == 1:
-            new_data = {**config_entry.data}
-
-            # Add default value for pairing_token
-            if "pairing_token" not in new_data:
-                new_data["pairing_token"] = None  # Or fetch it if possible
-
-            # Update the version
-            config_entry.version = 2
-            hass.config_entries.async_update_entry(config_entry, data=new_data)
-
-        return True
-
     @staticmethod
     @callback
     def async_get_options_flow(
