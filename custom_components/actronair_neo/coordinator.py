@@ -53,7 +53,8 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("Received full-status-broadcast, updating full state.")
                 self.local_state["full_update"] = event_data
                 self.local_state["last_event_id"] = event_id
-                self.async_set_updated_data(self.local_state["full_update"])
+                if self.local_state["full_update"] is not None:
+                    self.async_set_updated_data(self.local_state["full_update"])
                 return self.local_state["full_update"]
 
         return self.local_state["full_update"]
@@ -83,7 +84,8 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("Received full-status-broadcast, updating full state.")
                 self.local_state["full_update"] = event_data
                 self.local_state["last_event_id"] = event_id
-                self.async_set_updated_data(self.local_state["full_update"])
+                if self.local_state["full_update"] is not None:
+                    self.async_set_updated_data(self.local_state["full_update"])
                 return self.local_state["full_update"]
 
             if event_type == "status-change-broadcast":
@@ -94,7 +96,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
 
             self.local_state["last_event_id"] = event_id
 
-        if self.local_state["full_update"]:
+        if self.local_state["full_update"] is not None:
             self.async_set_updated_data(self.local_state["full_update"])
             _LOGGER.debug("Coordinator data updated with the latest state.")
         return self.local_state["full_update"]
@@ -105,17 +107,44 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
             if key.startswith("@"):
                 continue
 
-            match = re.match(r"(.+)\[(\d+)\]$", key)
+            keys = key.split(".")
+            current = full_state
+
+            for part in keys[:-1]:
+                match = re.match(r"(.+)\[(\d+)\]$", part)
+                if match:
+                    array_key, index = match.groups()
+                    index = int(index)
+
+                    if array_key not in current:
+                        current[array_key] = []
+
+                    while len(current[array_key]) <= index:
+                        current[array_key].append({})
+
+                    current = current[array_key][index]
+                else:
+                    if part not in current:
+                        current[part] = {}
+                    current = current[part]
+
+            final_key = keys[-1]
+            match = re.match(r"(.+)\[(\d+)\]$", final_key)
             if match:
                 array_key, index = match.groups()
                 index = int(index)
 
-                if array_key not in full_state:
-                    full_state[array_key] = []
+                if array_key not in current:
+                    current[array_key] = []
 
-                while len(full_state[array_key]) <= index:
-                    full_state[array_key].append(False)
+                while len(current[array_key]) <= index:
+                    current[array_key].append({})
 
-                full_state[array_key][index] = value
+                if isinstance(current[array_key][index], dict) and isinstance(
+                    value, dict
+                ):
+                    current[array_key][index].update(value)
+                else:
+                    current[array_key][index] = value
             else:
-                full_state[key] = value
+                current[final_key] = value
