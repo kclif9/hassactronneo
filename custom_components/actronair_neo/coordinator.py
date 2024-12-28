@@ -42,7 +42,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                         )
                         self.local_state["full_update"] = event_data
                         self.local_state["last_event_id"] = event_id
-                        self.async_set_updated_data(
+                        await self.async_set_updated_data(
                             self.local_state["full_update"])
                         return self.local_state["full_update"]
 
@@ -65,7 +65,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                     )
                     self.local_state["full_update"] = event_data
                     self.local_state["last_event_id"] = event_id
-                    self.async_set_updated_data(
+                    await self.async_set_updated_data(
                         self.local_state["full_update"])
                     return self.local_state["full_update"]
 
@@ -79,7 +79,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 self.local_state["last_event_id"] = event_id
 
             if self.local_state["full_update"]:
-                self.async_set_updated_data(self.local_state["full_update"])
+                await self.async_set_updated_data(self.local_state["full_update"])
                 _LOGGER.debug(
                     "Coordinator data updated with the latest state.")
             return self.local_state["full_update"]
