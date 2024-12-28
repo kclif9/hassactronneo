@@ -18,12 +18,16 @@ version-resolver:
   major:
     labels:
       - 'major'
+      - 'feature'
   minor:
     labels:
-      - 'minor'
+      - 'enhancement'
   patch:
     labels:
-      - 'patch'
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+      - 'chore'
   default: patch
 template: |
   ## Changes
