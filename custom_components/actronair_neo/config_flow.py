@@ -4,9 +4,8 @@ import logging
 from actron_neo_api import ActronNeoAPI
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback, HomeAssistant
-from .const import DOMAIN, ERROR_CANNOT_CONNECT, ERROR_NO_SYSTEMS_FOUND, ERROR_UNKNOWN
+from homeassistant.core import callback
+from .const import DOMAIN, ERROR_NO_SYSTEMS_FOUND, ERROR_UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
 
