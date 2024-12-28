@@ -165,10 +165,12 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
                     return zone_state
                 except IndexError:
                     _LOGGER.error(
-                        f"Zone number {self._zone_number} out of range for EnabledZones: {enabled_zones}"
+                        "Zone number %s out of range for EnabledZones: %s",
+                        self._zone_number,
+                        enabled_zones,
                     )
             else:
-                _LOGGER.error(f"EnabledZones is not a list: {enabled_zones}")
+                _LOGGER.error("EnabledZones is not a list: %s", enabled_zones)
         return False
 
     async def async_turn_on(self, **kwargs) -> None:
@@ -191,6 +193,6 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_update(self):
         """Fetch the latest data and refresh state."""
-        _LOGGER.debug(f"Updating Zone {self.zone_index} state from coordinator.")
+        _LOGGER.debug("Updating Zone %s state from coordinator.", self._zone_number)
         await self.coordinator.async_request_refresh()
         self.async_write_ha_state()
