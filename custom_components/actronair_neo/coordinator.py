@@ -1,6 +1,8 @@
 from datetime import timedelta
 import logging
 import re
+import aiohttp
+import asyncio
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,68 +25,79 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch updates and merge incremental changes into the full state."""
+        if self.local_state["full_update"] is None:
+            return await self._fetch_full_update()
+
+        return await self._fetch_incremental_updates()
+
+    async def _fetch_full_update(self):
+        """Fetch the full update."""
+        _LOGGER.debug("Fetching full-status-broadcast.")
         try:
-            # If no full update exists, fetch it
-            if self.local_state["full_update"] is None:
-                _LOGGER.debug("Fetching full-status-broadcast.")
-                events = await self.api.get_ac_events(
-                    self.serial_number, event_type="latest"
-                )
+            events = await self.api.get_ac_events(
+                self.serial_number, event_type="latest"
+            )
+            if events is None:
+                _LOGGER.error("Failed to fetch events: get_ac_events returned None")
+                return self.local_state["full_update"]
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            _LOGGER.error("Error fetching full update: %s", e)
+            return self.local_state["full_update"]
 
-                for event in events["events"]:
-                    event_data = event["data"]
-                    event_id = event["id"]
-                    event_type = event["type"]
+        for event in events["events"]:
+            event_data = event["data"]
+            event_id = event["id"]
+            event_type = event["type"]
 
-                    if event_type == "full-status-broadcast":
-                        _LOGGER.debug(
-                            "Received full-status-broadcast, updating full state."
-                        )
-                        self.local_state["full_update"] = event_data
-                        self.local_state["last_event_id"] = event_id
-                        await self.async_set_updated_data(
-                            self.local_state["full_update"]
-                        )
-                        return self.local_state["full_update"]
+            if event_type == "full-status-broadcast":
+                _LOGGER.debug("Received full-status-broadcast, updating full state.")
+                self.local_state["full_update"] = event_data
+                self.local_state["last_event_id"] = event_id
+                await self.async_set_updated_data(self.local_state["full_update"])
+                return self.local_state["full_update"]
 
-            # Fetch incremental updates since the last event
-            _LOGGER.debug("Fetching incremental updates.")
+        return self.local_state["full_update"]
+
+    async def _fetch_incremental_updates(self):
+        """Fetch incremental updates since the last event."""
+        _LOGGER.debug("Fetching incremental updates.")
+        try:
             events = await self.api.get_ac_events(
                 self.serial_number,
                 event_type="newer",
                 event_id=self.local_state["last_event_id"],
             )
+            if events is None:
+                _LOGGER.error("Failed to fetch events: get_ac_events returned None")
+                return self.local_state["full_update"]
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            _LOGGER.error("Error fetching incremental updates: %s", e)
+            return self.local_state["full_update"]
 
-            for event in reversed(events["events"]):
-                event_data = event["data"]
-                event_id = event["id"]
-                event_type = event["type"]
+        for event in reversed(events["events"]):
+            event_data = event["data"]
+            event_id = event["id"]
+            event_type = event["type"]
 
-                if event_type == "full-status-broadcast":
-                    _LOGGER.debug(
-                        "Received full-status-broadcast, updating full state."
-                    )
-                    self.local_state["full_update"] = event_data
-                    self.local_state["last_event_id"] = event_id
-                    await self.async_set_updated_data(self.local_state["full_update"])
-                    return self.local_state["full_update"]
-
-                if event_type == "status-change-broadcast":
-                    _LOGGER.debug("Merging status-change-broadcast into full state.")
-                    self._merge_incremental_update(
-                        self.local_state["full_update"], event["data"]
-                    )
-
+            if event_type == "full-status-broadcast":
+                _LOGGER.debug("Received full-status-broadcast, updating full state.")
+                self.local_state["full_update"] = event_data
                 self.local_state["last_event_id"] = event_id
-
-            if self.local_state["full_update"]:
                 await self.async_set_updated_data(self.local_state["full_update"])
-                _LOGGER.debug("Coordinator data updated with the latest state.")
-            return self.local_state["full_update"]
+                return self.local_state["full_update"]
 
-        except Exception as e:
-            _LOGGER.error("Error fetching updates: %s", e)
-            return self.local_state["full_update"]
+            if event_type == "status-change-broadcast":
+                _LOGGER.debug("Merging status-change-broadcast into full state.")
+                self._merge_incremental_update(
+                    self.local_state["full_update"], event["data"]
+                )
+
+            self.local_state["last_event_id"] = event_id
+
+        if self.local_state["full_update"]:
+            await self.async_set_updated_data(self.local_state["full_update"])
+            _LOGGER.debug("Coordinator data updated with the latest state.")
+        return self.local_state["full_update"]
 
     def _merge_incremental_update(self, full_state, incremental_data):
         """Merge incremental updates into the full state."""
