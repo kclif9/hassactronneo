@@ -42,8 +42,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                         )
                         self.local_state["full_update"] = event_data
                         self.local_state["last_event_id"] = event_id
-                        await self.async_set_updated_data(
-                            self.local_state["full_update"])
+                        self.async_set_updated_data(self.local_state["full_update"])
                         return self.local_state["full_update"]
 
             # Fetch incremental updates since the last event
@@ -65,13 +64,11 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                     )
                     self.local_state["full_update"] = event_data
                     self.local_state["last_event_id"] = event_id
-                    await self.async_set_updated_data(
-                        self.local_state["full_update"])
+                    self.async_set_updated_data(self.local_state["full_update"])
                     return self.local_state["full_update"]
 
                 if event_type == "status-change-broadcast":
-                    _LOGGER.debug(
-                        "Merging status-change-broadcast into full state.")
+                    _LOGGER.debug("Merging status-change-broadcast into full state.")
                     self._merge_incremental_update(
                         self.local_state["full_update"], event["data"]
                     )
@@ -79,9 +76,8 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 self.local_state["last_event_id"] = event_id
 
             if self.local_state["full_update"]:
-                await self.async_set_updated_data(self.local_state["full_update"])
-                _LOGGER.debug(
-                    "Coordinator data updated with the latest state.")
+                self.async_set_updated_data(self.local_state["full_update"])
+                _LOGGER.debug("Coordinator data updated with the latest state.")
             return self.local_state["full_update"]
 
         except Exception as e:
