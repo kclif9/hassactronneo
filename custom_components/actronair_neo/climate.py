@@ -66,12 +66,25 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     api = data["api"]
     coordinator = data["coordinator"]
+    serial_number = entry.data.get("serial_number")
     ac_unit = data["ac_unit"]
 
+    # Fetch the status and create ZoneSwitches
+    status = coordinator.data
+    zones = status.get("RemoteZoneInfo", [])
+    entities = []
+
     # Add system-wide climate entity
-    async_add_entities(
-        [ActronSystemClimate(coordinator, api, ac_unit, entry.data["serial_number"])]
-    )
+    entities.append(ActronSystemClimate(coordinator, api, ac_unit, serial_number))
+
+    for zone_number, zone in enumerate(zones, start=1):
+        if zone["NV_Exists"]:
+            zone_name = zone["NV_Title"]
+            ac_zone = ACZone(ac_unit, zone_number, zone_name)
+            entities.append(ActronZoneClimate(coordinator, api, ac_zone, serial_number))
+
+    # Add all switches
+    async_add_entities(entities)
 
 
 class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
