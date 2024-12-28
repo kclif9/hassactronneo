@@ -3,8 +3,6 @@
 from typing import Any
 
 from actron_neo_api import ActronNeoAPI
-from .device import ACUnit
-
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -14,8 +12,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
+from .device import ACUnit
 from .const import DOMAIN
 
 DEFAULT_TEMPERATURE = None
@@ -72,7 +74,7 @@ async def async_setup_entry(
     )
 
 
-class ActronSystemClimate(ClimateEntity):
+class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     """Representation of the Actron Air Neo system."""
 
     _attr_has_entity_name = True
@@ -88,7 +90,7 @@ class ActronSystemClimate(ClimateEntity):
         serial_number: str,
     ) -> None:
         """Initialize an Actron Air Neo unit."""
-        super().__init__()
+        super().__init__(coordinator)
         self._coordinator = coordinator
         self._api = api
         self._serial_number = serial_number
@@ -101,6 +103,11 @@ class ActronSystemClimate(ClimateEntity):
     def _status(self):
         """Shortcut to coordinator data."""
         return self._coordinator.data
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
@@ -207,7 +214,7 @@ class ActronSystemClimate(ClimateEntity):
         temp = kwargs.get("temperature")
         mode = self._hvac_mode.lower()
 
-        if not (self.min_temp <= temp <= self.max_temp):
+        if not self.min_temp <= temp <= self.max_temp:
             raise ValueError(
                 f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp})."
             )
