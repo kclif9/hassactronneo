@@ -68,11 +68,7 @@ async def async_setup_entry(
 
     # Add system-wide climate entity
     async_add_entities(
-        [
-            ActronSystemClimate(
-                coordinator, api, ac_unit, entry.data["serial_number"]
-            )
-        ]
+        [ActronSystemClimate(coordinator, api, ac_unit, entry.data["serial_number"])]
     )
 
 
@@ -110,6 +106,16 @@ class ActronSystemClimate(ClimateEntity):
     def device_info(self):
         """Return the device information."""
         return self._ac_unit.device_info
+
+    @property
+    def hvac_mode(self) -> HVACMode:
+        """Return the current HVAC mode."""
+        system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
+        if not system_state:
+            return HVAC_MODE_OFF
+
+        hvac_mode = self._status.get("UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
+        return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -161,16 +167,6 @@ class ActronSystemClimate(ClimateEntity):
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
         return SUPPORTED_FEATURES
-
-    @property
-    def state(self) -> HVACMode:
-        """Return the HVAC mode."""
-        system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
-        if system_state == False:
-            return HVAC_MODE_OFF
-
-        hvac_mode = self._status.get("UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
-        return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
 
     @property
     def min_temp(self) -> float:
