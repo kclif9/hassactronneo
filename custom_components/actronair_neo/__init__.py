@@ -1,10 +1,14 @@
+"""The Actron Air Neo integration."""
+
+import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from actron_neo_api import ActronNeoAPI
+
 from .const import DOMAIN, PLATFORMS
 from .coordinator import ActronNeoDataUpdateCoordinator
 from .device import ACUnit
-from actron_neo_api import ActronNeoAPI
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

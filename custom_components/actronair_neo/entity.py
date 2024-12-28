@@ -1,5 +1,6 @@
 """Sensor platform for Actron Neo integration."""
 
+from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -42,6 +43,11 @@ class EntitySensor(CoordinatorEntity, Entity):
             ]
         )
         self._attr_device_info = self._ac_unit.device_info
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()
 
     @property
     def state(self):
