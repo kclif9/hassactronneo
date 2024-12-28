@@ -285,7 +285,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
                 DOMAIN,
                 self._serial_number,
                 "zone",
-                self._attr_name,
+                self._ac_zone.zone_number,
                 "climate",
             ]
         )
