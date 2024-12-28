@@ -67,6 +67,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
                 self._attr_name,
             ]
         )
+        self._is_on = self.is_on
 
     @property
     def device_info(self):
@@ -93,6 +94,9 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the continuous fan on."""
+        self._is_on = True
+        self.async_write_ha_state()
+
         status = self.coordinator.data
         if status:
             fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
@@ -105,6 +109,9 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn the continuous fan off."""
+        self._is_on = False
+        self.async_write_ha_state()
+
         status = self.coordinator.data
         if status:
             fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
