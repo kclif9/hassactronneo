@@ -13,17 +13,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Actron Air Neo integration from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    access_token = entry.data.get("access_token")
     pairing_token = entry.data.get("pairing_token")
     serial_number = entry.data.get("serial_number")
 
-    if not access_token or not pairing_token or not serial_number:
-        _LOGGER.error(
-            "Missing access token, pairing token, or serial number in config entry."
-        )
+    if not pairing_token or not serial_number:
+        _LOGGER.error("Missing either pairing token or serial number in config entry.")
         return False
 
-    api = ActronNeoAPI(access_token=access_token, pairing_token=pairing_token)
+    api = ActronNeoAPI(pairing_token=pairing_token)
+    await api.refresh_token()
 
     # Initialize the data coordinator
     coordinator = ActronNeoDataUpdateCoordinator(hass, api, serial_number)
@@ -66,14 +64,18 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle migration of a config entry."""
-    if config_entry.version == 1:
-        new_data = {**config_entry.data}
+    if entry.version != 3:
+        new_data = {**entry.data}
 
-        # Add default value for pairing_token if missing
-        if "pairing_token" not in new_data:
-            new_data["pairing_token"] = None
-        hass.config_entries.async_update_entry(config_entry, data=new_data, version=2)
+        if entry.version == 1:
+            if "pairing_token" not in new_data:
+                new_data["pairing_token"] = None
+        if entry.version == 2:
+            if "access_token" in new_data:
+                new_data["access_token"] = None
+
+        hass.config_entries.async_update_entry(entry, data=new_data, version=3)
 
     return True

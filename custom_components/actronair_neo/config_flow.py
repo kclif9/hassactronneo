@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Actron Air Neo."""
 
-    VERSION = 2
+    VERSION = 3
 
     async def async_step_user(self, user_input=None) -> config_entries.ConfigFlowResult:
         """Handle the initial step."""
@@ -32,7 +32,7 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     username=user_input["username"], password=user_input["password"]
                 )
                 await api.request_pairing_token("HomeAssistant", "ha-instance-id")
-                await api.request_bearer_token()
+                await api.refresh_token()
 
                 systems = await api.get_ac_systems()
                 ac_systems = systems.get("_embedded", {}).get("ac-system", [])
@@ -60,7 +60,6 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=selected_system["description"],
                     data={
-                        "access_token": api.access_token,
                         "pairing_token": api.pairing_token,
                         "serial_number": selected_system["serial"],
                     },
@@ -101,7 +100,6 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(
             title=selected_system["description"],
             data={
-                "access_token": self.context["api"].access_token,
                 "pairing_token": self.context["api"].pairing_token,
                 "serial_number": selected_system["serial"],
             },

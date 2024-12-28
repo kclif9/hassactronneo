@@ -10,7 +10,7 @@
   "iot_class": "cloud_polling",
   "dependencies": [],
   "requirements": [
-    "actron-neo-api==0.1.27"
+    "actron-neo-api==0.1.28"
   ],
   "issue_tracker": ""
 }
