@@ -1,11 +1,8 @@
-name: Update Manifest Version
+name: Upload Python Package to PyPI when a Release is published
 
 on:
   release:
-    types: [created]
-
-permissions:
-  contents: write
+    types: [published]
 
 jobs:
   update-version:
@@ -14,22 +11,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Ensure all history is fetched
-
+          fetch-depth: 0
       - name: Update manifest.json version
         run: |
           TAG=${{ github.ref_name }}
           VERSION=${TAG#"v"}
           jq --arg version "$VERSION" '.version = $version' custom_components/actronair_neo/manifest.json > manifest.tmp
           mv manifest.tmp custom_components/actronair_neo/manifest.json
-
       - name: Commit changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add custom_components/actronair_neo/manifest.json
-          git commit -m "Update manifest.json for version $TAG"
-
+          git add pyproject.toml
+          git commit -m "Bump version to $TAG"
       - name: Push changes
         run: |
           git push origin HEAD:main
