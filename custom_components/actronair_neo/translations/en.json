@@ -1,89 +1,93 @@
 {
-    "title": "Actron Air Neo",
-    "config": {
-      "step": {
-        "user": {
-          "title": "Set up Actron Air Neo",
-          "description": "Enter your Actron Air Neo account credentials to connect.",
-          "data": {
-            "username": "Username",
-            "password": "Password"
-          }
-        }
-      },
-      "error": {
-        "cannot_connect": "Unable to connect to Actron Air Neo. Please check your credentials and try again."
-      }
-    },
-    "options": {
-      "step": {
-        "init": {
-          "title": "Actron Air Neo Options",
-          "description": "Configure options for the Actron Air Neo integration."
+  "title": "Actron Air Neo",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Actron Air Neo",
+        "description": "Enter your Actron Air Neo account credentials to connect.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
         }
       }
     },
-    "device_automation": {
-      "action_type": {
-        "turn_on": "Turn on Actron Air Neo device",
-        "turn_off": "Turn off Actron Air Neo device"
+    "error": {
+      "cannot_connect": "Unable to connect to Actron Air Neo. Please check your credentials and try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Actron Air Neo Options",
+        "description": "Configure options for the Actron Air Neo integration."
+      }
+    }
+  },
+  "device_automation": {
+    "action_type": {
+      "turn_on": "Turn on Actron Air Neo device",
+      "turn_off": "Turn off Actron Air Neo device"
+    }
+  },
+  "entity": {
+    "climate": {
+      "ac_unit": {
+        "name": "AC Unit {serial_number}",
+        "manufacturer": "Actron Air"
+      },
+      "ac_zone": {
+        "name": "AC Zone {zone_number}",
+        "manufacturer": "Actron Air"
       }
     },
-    "entity": {
-      "climate": {
-        "ac_unit": {
-          "name": "AC Unit {serial_number}",
-          "manufacturer": "Actron Air"
-        }
+    "sensor": {
+      "clean_filter": {
+        "name": "Clean Filter"
       },
-      "sensor": {
-        "clean_filter": {
-          "name": "Clean Filter"
-        },
-        "defrost_mode": {
-          "name": "Defrost Mode"
-        },
-        "compressor_chasing_temperature": {
-          "name": "Compressor Chasing Temperature"
-        },
-        "compressor_live_temperature": {
-          "name": "Compressor Live Temperature"
-        },
-        "compressor_mode": {
-          "name": "Compressor Mode"
-        },
-        "system_on": {
-          "name": "System On"
-        },
-        "compressor_speed": {
-          "name": "Compressor Speed"
-        },
-        "compressor_power": {
-          "name": "Compressor Power"
-        },
-        "outdoor_temperature": {
-          "name": "Outdoor Temperature"
-        },
-        "humidity": {
-          "name": "Humidity"
-        },
-        "temperature": {
-          "name": "Temperature"
-        },
-        "battery": {
-          "name": "Battery"
-        },
-        "damper_position": {
-          "name": "Damper Position"
-        }
+      "defrost_mode": {
+        "name": "Defrost Mode"
       },
-      "switch": {
-        "continuous_fan": {
-          "name": "Continuous Fan"
-        },
-        "zone_enabled": {
-          "name": "Zone {zone_number} Enabled"
-        }
+      "compressor_chasing_temperature": {
+        "name": "Compressor Chasing Temperature"
+      },
+      "compressor_live_temperature": {
+        "name": "Compressor Live Temperature"
+      },
+      "compressor_mode": {
+        "name": "Compressor Mode"
+      },
+      "system_on": {
+        "name": "System On"
+      },
+      "compressor_speed": {
+        "name": "Compressor Speed"
+      },
+      "compressor_power": {
+        "name": "Compressor Power"
+      },
+      "outdoor_temperature": {
+        "name": "Outdoor Temperature"
+      },
+      "humidity": {
+        "name": "Humidity"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "damper_position": {
+        "name": "Damper Position"
+      }
+    },
+    "switch": {
+      "continuous_fan": {
+        "name": "Continuous Fan"
+      },
+      "zone_enabled": {
+        "name": "Zone {zone_number} Enabled"
       }
     }
   }
+}
