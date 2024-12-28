@@ -72,8 +72,8 @@ async def async_setup_entry(
         (
             ac_unit,
             "system_on",
-            ["LiveAircon"],
-            "SystemOn",
+            ["UserAirconSettings"],
+            "isOn",
             None,
             False,
         ),
