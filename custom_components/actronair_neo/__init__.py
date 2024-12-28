@@ -19,7 +19,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if not access_token or not pairing_token or not serial_number:
         _LOGGER.error(
-            "Missing access token, pairing token, or serial number in config entry.")
+            "Missing access token, pairing token, or serial number in config entry."
+        )
         return False
 
     api = ActronNeoAPI(access_token=access_token, pairing_token=pairing_token)
@@ -27,6 +28,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Initialize the data coordinator
     coordinator = ActronNeoDataUpdateCoordinator(hass, api, serial_number)
     await coordinator.async_config_entry_first_refresh()
+
+    # Ensure coordinator data is not None
+    if coordinator.data is None:
+        _LOGGER.error("Failed to fetch initial data from the coordinator.")
+        return False
 
     # Fetch system details and set up ACUnit
     system = await api.get_ac_systems()
@@ -59,6 +65,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return unload_ok
 
+
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle migration of a config entry."""
     if config_entry.version == 1:
@@ -67,8 +74,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         # Add default value for pairing_token if missing
         if "pairing_token" not in new_data:
             new_data["pairing_token"] = None
-        hass.config_entries.async_update_entry(
-            config_entry, data=new_data, version=2
-        )
+        hass.config_entries.async_update_entry(config_entry, data=new_data, version=2)
 
     return True
