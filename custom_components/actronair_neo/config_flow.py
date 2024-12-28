@@ -4,7 +4,8 @@ import logging
 from actron_neo_api import ActronNeoAPI
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback, HomeAssistant
 from .const import DOMAIN, ERROR_CANNOT_CONNECT, ERROR_NO_SYSTEMS_FOUND, ERROR_UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Actron Air Neo."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(self, user_input=None) -> config_entries.ConfigFlowResult:
         """Handle the initial step."""
@@ -61,6 +62,7 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     title=selected_system["description"],
                     data={
                         "access_token": api.access_token,
+                        "pairing_token": api.pairing_token,
                         "serial_number": selected_system["serial"],
                     },
                 )
@@ -103,9 +105,25 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             title=selected_system["description"],
             data={
                 "access_token": self.context["api"].access_token,
+                "pairing_token": self.context["api"].pairing_token,
                 "serial_number": selected_system["serial"],
             },
         )
+
+    async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+        """Handle migration of a config entry."""
+        if config_entry.version == 1:
+            new_data = {**config_entry.data}
+
+            # Add default value for pairing_token
+            if "pairing_token" not in new_data:
+                new_data["pairing_token"] = None  # Or fetch it if possible
+
+            # Update the version
+            config_entry.version = 2
+            hass.config_entries.async_update_entry(config_entry, data=new_data)
+
+        return True
 
     @staticmethod
     @callback

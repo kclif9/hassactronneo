@@ -14,13 +14,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     access_token = entry.data.get("access_token")
+    pairing_token = entry.data.get("pairing_token")
     serial_number = entry.data.get("serial_number")
 
-    if not access_token or not serial_number:
-        _LOGGER.error("Missing access token or serial number in config entry.")
+    if not access_token or not pairing_token or not serial_number:
+        _LOGGER.error(
+            "Missing access token, pairing token, or serial number in config entry.")
         return False
 
-    api = ActronNeoAPI(access_token=access_token)
+    api = ActronNeoAPI(access_token=access_token, pairing_token=pairing_token)
 
     # Initialize the data coordinator
     coordinator = ActronNeoDataUpdateCoordinator(hass, api, serial_number)
