@@ -117,7 +117,9 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
-        system_state = self._status.get("LiveAircon", {}).get("SystemOn", DEFAULT_MODE)
+        system_state = self._status.get("UserAirconSettings", {}).get(
+            "isOn", DEFAULT_MODE
+        )
         if not system_state:
             return HVAC_MODE_OFF
 
