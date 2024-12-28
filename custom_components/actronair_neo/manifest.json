@@ -1,7 +1,7 @@
 {
   "domain": "actronair_neo",
   "name": "Actron Air Neo",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "codeowners": [
     "@kclif9"
   ],
