@@ -4,7 +4,7 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -12,7 +12,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .device import ACZone, ZonePeripheral
 from .entity import EntitySensor
-from .switch import ZoneSwitch
 
 
 async def async_setup_entry(
@@ -22,9 +21,7 @@ async def async_setup_entry(
 ):
     """Set up Actron Air Neo sensors."""
     data = hass.data[DOMAIN][entry.entry_id]
-    api = data["api"]
     coordinator = data["coordinator"]
-    serial_number = data["serial_number"]
     ac_unit = data["ac_unit"]
 
     # Obtain AC Units
@@ -225,6 +222,11 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         )
         self._attr_device_info = self._ac_zone.device_info
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()
+
     @property
     def state(self):
         """Return the state of the sensor."""
@@ -293,6 +295,11 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
                 zone_peripheral._serial,
             ]
         )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
