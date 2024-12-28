@@ -53,7 +53,9 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("Received full-status-broadcast, updating full state.")
                 self.local_state["full_update"] = event_data
                 self.local_state["last_event_id"] = event_id
-                self.async_set_updated_data(self.local_state["full_update"])
+                _LOGGER.debug("Full update data: %s", self.local_state["full_update"])
+                if self.local_state["full_update"] is not None:
+                    self.async_set_updated_data(self.local_state["full_update"])
                 return self.local_state["full_update"]
 
         return self.local_state["full_update"]
@@ -83,7 +85,9 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("Received full-status-broadcast, updating full state.")
                 self.local_state["full_update"] = event_data
                 self.local_state["last_event_id"] = event_id
-                self.async_set_updated_data(self.local_state["full_update"])
+                _LOGGER.debug("Full update data: %s", self.local_state["full_update"])
+                if self.local_state["full_update"] is not None:
+                    self.async_set_updated_data(self.local_state["full_update"])
                 return self.local_state["full_update"]
 
             if event_type == "status-change-broadcast":
@@ -94,13 +98,14 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
 
             self.local_state["last_event_id"] = event_id
 
-        if self.local_state["full_update"]:
+        if self.local_state["full_update"] is not None:
             self.async_set_updated_data(self.local_state["full_update"])
             _LOGGER.debug("Coordinator data updated with the latest state.")
         return self.local_state["full_update"]
 
     def _merge_incremental_update(self, full_state, incremental_data):
         """Merge incremental updates into the full state."""
+        _LOGGER.debug("Before merge: %s", full_state)
         for key, value in incremental_data.items():
             if key.startswith("@"):
                 continue
@@ -119,3 +124,4 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
                 full_state[array_key][index] = value
             else:
                 full_state[key] = value
+        _LOGGER.debug("After merge: %s", full_state)
