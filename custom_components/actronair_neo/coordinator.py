@@ -27,9 +27,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
             # If no full update exists, fetch it
             if self.local_state["full_update"] is None:
                 _LOGGER.debug("Fetching full-status-broadcast.")
-                events = await self.api.get_ac_events(
-                    self.serial_number, event_type="latest"
-                )
+                events = self.api.get_ac_events(self.serial_number, event_type="latest")
 
                 for event in events["events"]:
                     event_data = event["data"]
@@ -49,7 +47,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
 
             # Fetch incremental updates since the last event
             _LOGGER.debug("Fetching incremental updates.")
-            events = await self.api.get_ac_events(
+            events = self.api.get_ac_events(
                 self.serial_number,
                 event_type="newer",
                 event_id=self.local_state["last_event_id"],
