@@ -60,16 +60,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-        """Handle migration of a config entry."""
-        if config_entry.version == 1:
-            new_data = {**config_entry.data}
+    """Handle migration of a config entry."""
+    if config_entry.version == 1:
+        new_data = {**config_entry.data}
 
-            # Add default value for pairing_token
-            if "pairing_token" not in new_data:
-                new_data["pairing_token"] = None  # Or fetch it if possible
+        # Add default value for pairing_token if missing
+        if "pairing_token" not in new_data:
+            new_data["pairing_token"] = None
+        hass.config_entries.async_update_entry(
+            config_entry, data=new_data, version=2
+        )
 
-            # Update the version
-            config_entry.version = 2
-            hass.config_entries.async_update_entry(config_entry, data=new_data)
-
-        return True
+    return True
