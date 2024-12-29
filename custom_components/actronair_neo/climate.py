@@ -372,7 +372,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     def min_temp(self) -> float:
         """Return the minimum temperature that can be set."""
         min_setpoint = (
-            self._status.data.get("NV_Limits", {})
+            self._status.get("NV_Limits", {})
             .get("UserSetpoint_oC", {})
             .get("setCool_Min", DEFAULT_TEMP_MIN)
         )
@@ -390,7 +390,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     def max_temp(self) -> float:
         """Return the maximum temperature that can be set."""
         max_setpoint = (
-            self._status.data.get("NV_Limits", {})
+            self._status.get("NV_Limits", {})
             .get("UserSetpoint_oC", {})
             .get("setCool_Max", DEFAULT_TEMP_MAX)
         )
