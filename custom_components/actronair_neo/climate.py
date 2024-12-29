@@ -80,13 +80,15 @@ async def async_setup_entry(
     entities = []
 
     # Add system-wide climate entity
-    entities.append(ActronSystemClimate(coordinator, api, ac_unit, serial_number))
+    entities.append(ActronSystemClimate(
+        coordinator, api, ac_unit, serial_number))
 
     for zone_number, zone in enumerate(zones, start=1):
         if zone["NV_Exists"]:
             zone_name = zone["NV_Title"]
             ac_zone = ACZone(ac_unit, zone_number, zone_name)
-            entities.append(ActronZoneClimate(coordinator, api, ac_zone, serial_number))
+            entities.append(ActronZoneClimate(
+                coordinator, api, ac_zone, serial_number))
 
     # Add all switches
     async_add_entities(entities)
@@ -98,7 +100,6 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     _attr_has_entity_name = True
     _attr_translation_key = "ac_unit"
     _attr_fan_modes = ["auto", "low", "medium", "high"]
-    _hvac_mode = DEFAULT_MODE
 
     def __init__(
         self,
@@ -113,7 +114,8 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
         self._api = api
         self._serial_number = serial_number
         self._ac_unit = ac_unit
-        self._attr_translation_placeholders = {"serial_number": self._serial_number}
+        self._attr_translation_placeholders = {
+            "serial_number": self._serial_number}
         self._attr_name = f"AC Unit {self._serial_number}"
         self._attr_unique_id = f"{DOMAIN}_{self._serial_number}_climate"
 
@@ -141,7 +143,8 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
         if not system_state:
             return HVAC_MODE_OFF
 
-        hvac_mode = self._status.get("UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
+        hvac_mode = self._status.get(
+            "UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
         return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
 
     @property
@@ -232,26 +235,29 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set the temperature."""
         temp = kwargs.get("temperature")
-        mode = self._hvac_mode.lower()
+        hvac_mode = self.hvac_mode.lower()
 
-        if not self.min_temp <= temp <= self.max_temp:
-            raise ValueError(
-                f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp})."
-            )
-
-        if mode == "cool":
+        if hvac_mode == HVAC_MODE_COOL:
             await self._api.set_temperature(
-                self._serial_number, mode="COOL", temperature=temp
+                self._serial_number,
+                mode="COOL",
+                temperature=temp,
             )
-        elif mode == "heat":
+        elif hvac_mode == HVAC_MODE_HEAT:
             await self._api.set_temperature(
-                self._serial_number, mode="HEAT", temperature=temp
+                self._serial_number,
+                mode="HEAT",
+                temperature=temp,
             )
-        elif mode == "auto":
+        elif hvac_mode == HVAC_MODE_AUTO:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="AUTO",
                 temperature={"cool": temp, "heat": temp},
+            )
+        else:
+            raise ValueError(
+                f"Mode {hvac_mode} is invalid."
             )
         self.async_write_ha_state()
 
@@ -268,7 +274,6 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "ac_zone"
-    _hvac_mode = DEFAULT_MODE
 
     def __init__(
         self,
@@ -283,7 +288,8 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
         self._api = api
         self._serial_number = serial_number
         self._ac_zone = ac_zone
-        self._attr_translation_placeholders = {"zone_number": self._ac_zone.zone_number}
+        self._attr_translation_placeholders = {
+            "zone_number": self._ac_zone.zone_number}
         self._attr_unique_id = "_".join(
             [
                 DOMAIN,
@@ -320,7 +326,8 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
 
         status = self.coordinator.data
         if status:
-            enabled_zones = status.get("UserAirconSettings", {}).get("EnabledZones", [])
+            enabled_zones = status.get(
+                "UserAirconSettings", {}).get("EnabledZones", [])
             if isinstance(enabled_zones, list):
                 zone_state = enabled_zones[self._ac_zone.zone_number - 1]
                 if zone_state:
@@ -427,32 +434,36 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set the temperature."""
         temp = kwargs.get("temperature")
-        mode = self._hvac_mode.lower()
+        hvac_mode = self.hvac_mode
 
         if not self.min_temp <= temp <= self.max_temp:
             raise ValueError(
                 f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp})."
             )
 
-        if mode == "cool":
+        if hvac_mode == HVAC_MODE_COOL:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="COOL",
                 temperature=temp,
                 zone=self._ac_zone.zone_number - 1,
             )
-        elif mode == "heat":
+        elif hvac_mode == HVAC_MODE_HEAT:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="HEAT",
                 temperature=temp,
                 zone=self._ac_zone.zone_number - 1,
             )
-        elif mode == "auto":
+        elif hvac_mode == HVAC_MODE_AUTO:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="AUTO",
                 temperature={"cool": temp, "heat": temp},
                 zone=self._ac_zone.zone_number - 1,
+            )
+        else:
+            raise ValueError(
+                f"Mode {hvac_mode} is invalid."
             )
         self.async_write_ha_state()
