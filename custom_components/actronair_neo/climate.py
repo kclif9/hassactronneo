@@ -47,9 +47,14 @@ HVAC_MODE_MAPPING = {
         HVACMode.FAN_ONLY,
     ]
 }
-SUPPORTED_FEATURES = (
+AC_UNIT_SUPPORTED_FEATURES = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.FAN_MODE
+    | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.TURN_OFF
+)
+AC_ZONE_SUPPORTED_FEATURES = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.TURN_ON
     | ClimateEntityFeature.TURN_OFF
 )
@@ -188,7 +193,7 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
-        return SUPPORTED_FEATURES
+        return AC_UNIT_SUPPORTED_FEATURES
 
     @property
     def min_temp(self) -> float:
@@ -365,7 +370,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return supported features."""
-        return SUPPORTED_FEATURES
+        return AC_ZONE_SUPPORTED_FEATURES
 
     @property
     def min_temp(self) -> float:
