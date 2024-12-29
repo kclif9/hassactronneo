@@ -263,7 +263,6 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "ac_zone"
-    _attr_fan_modes = ["auto", "low", "medium", "high"]
     _hvac_mode = DEFAULT_MODE
 
     def __init__(
