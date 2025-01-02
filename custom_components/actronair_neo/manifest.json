@@ -6,8 +6,8 @@
   "dependencies": [],
   "dhcp": [
     {
-      "hostname": "NEO-*",
-      "macaddress": "FC0FE7*"
+      "hostname": "neo-*",
+      "macaddress": "fc0fe7*"
     }
   ],
   "documentation": "https://github.com/kclif9/actron-neo",
