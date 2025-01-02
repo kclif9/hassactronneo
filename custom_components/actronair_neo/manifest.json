@@ -7,7 +7,7 @@
   "dhcp": [
     {
       "hostname": "neo-*",
-      "macaddress": "fc0fe7*"
+      "macaddress": "FC0FE7*"
     }
   ],
   "documentation": "https://github.com/kclif9/actron-neo",
