@@ -1,10 +1,12 @@
 """Switch platform for Actron Neo integration."""
 
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -71,7 +73,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return the device information."""
         return self._ac_unit.device_info
 
@@ -84,16 +86,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
             return fan_mode.endswith("+CONT")
         return False
 
-    @property
-    def extra_state_attributes(self):
-        """Extra state attributes."""
-        status = self.coordinator.data
-        if status:
-            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
-            return {"fan_mode": fan_mode.replace("+CONT", "")}
-        return {}
-
-    async def async_turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the continuous fan on."""
         self._is_on = True
         self.async_write_ha_state()
@@ -108,7 +101,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
                 )
                 await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the continuous fan off."""
         self._is_on = False
         self.async_write_ha_state()
@@ -150,7 +143,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return the device information."""
         return self._ac_zone.device_info
 
@@ -174,7 +167,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
                 _LOGGER.error("EnabledZones is not a list: %s", enabled_zones)
         return False
 
-    async def async_turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the zone on."""
         await self._api.set_zone(
             serial_number=self._serial_number,
@@ -183,7 +176,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         )
         await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the zone off."""
         await self._api.set_zone(
             serial_number=self._serial_number,
@@ -192,7 +185,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         )
         await self.coordinator.async_request_refresh()
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         """Fetch the latest data and refresh state."""
         _LOGGER.debug("Updating Zone %s state from coordinator",
                       self._zone_number)
