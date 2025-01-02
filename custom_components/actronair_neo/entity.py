@@ -28,19 +28,15 @@ class EntitySensor(CoordinatorEntity, Entity):
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
         self._ac_unit = ac_unit
-        self._path = path if isinstance(path, list) else [path]  # Ensure path is a list
+        self._path = path if isinstance(path, list) else [
+            path]  # Ensure path is a list
         self._key = key
         self._device_info = device_info
         self._is_diagnostic = is_diagnostic
         self._attr_device_class = device_class
         self._attr_translation_key = translation_key
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                self._ac_unit._serial_number,
-                "sensor",
-                translation_key,
-            ]
+        self._attr_unique_id = (
+            f"{DOMAIN}_{self._ac_unit.unique_id}_sensor_{translation_key}"
         )
         self._attr_device_info = self._ac_unit.device_info
 

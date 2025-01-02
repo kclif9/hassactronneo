@@ -2,9 +2,10 @@
 
 import logging
 
+from actron_neo_api import ActronNeoAPI
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from actron_neo_api import ActronNeoAPI
 
 from .const import DOMAIN, PLATFORMS
 from .coordinator import ActronNeoDataUpdateCoordinator
@@ -21,7 +22,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     serial_number = entry.data.get("serial_number")
 
     if not pairing_token or not serial_number:
-        _LOGGER.error("Missing either pairing token or serial number in config entry.")
+        _LOGGER.error(
+            "Missing either pairing token or serial number in config entry")
         return False
 
     api = ActronNeoAPI(pairing_token=pairing_token)
@@ -33,7 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Ensure coordinator data is not None
     if coordinator.data is None:
-        _LOGGER.error("Failed to fetch initial data from the coordinator.")
+        _LOGGER.error("Failed to fetch initial data from the coordinator")
         return False
 
     # Fetch system details and set up ACUnit

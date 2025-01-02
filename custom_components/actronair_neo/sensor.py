@@ -1,10 +1,8 @@
 """Sensor platform for Actron Air Neo integration."""
 
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-)
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback, HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -172,7 +170,8 @@ async def async_setup_entry(
             device_type,
             software_version,
         )
-        zone_sensors.extend(create_peripheral_sensors(coordinator, zone_peripheral))
+        zone_sensors.extend(create_peripheral_sensors(
+            coordinator, zone_peripheral))
 
     # Add all sensors
     async_add_entities(ac_unit_sensors + zone_sensors)
@@ -211,14 +210,8 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         self._zone_number = ac_zone.zone_number
         self._state_key = state_key
         self._unit_of_measurement = unit_of_measurement
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                self._ac_zone._serial,
-                "sensor",
-                translation_key,
-                str(ac_zone.zone_number),
-            ]
+        self._attr_unique_id = (
+            f"{self._ac_zone.unique_id}_sensor_{translation_key}_{self._zone_number}"
         )
         self._attr_device_info = self._ac_zone.device_info
 
@@ -287,13 +280,8 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._path = path if isinstance(path, list) else [path]
         self._key = key
         self._unit_of_measurement = unit_of_measurement
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                "sensor",
-                translation_key,
-                zone_peripheral._serial,
-            ]
+        self._attr_unique_id = (
+            f"{zone_peripheral.unique_id}_sensor_{translation_key}_{self._zone_number}"
         )
 
     @callback

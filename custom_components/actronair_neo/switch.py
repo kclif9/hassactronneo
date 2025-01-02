@@ -4,7 +4,7 @@ import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback, HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -33,13 +33,15 @@ async def async_setup_entry(
     entities = []
 
     # Create a switch for the continuous fan
-    entities.append(ContinuousFanSwitch(api, coordinator, serial_number, ac_unit))
+    entities.append(ContinuousFanSwitch(
+        api, coordinator, serial_number, ac_unit))
 
     for zone_number, zone in enumerate(zones, start=1):
         if zone["NV_Exists"]:
             zone_name = zone["NV_Title"]
             ac_zone = ACZone(ac_unit, zone_number, zone_name)
-            entities.append(ZoneSwitch(api, coordinator, serial_number, ac_zone))
+            entities.append(ZoneSwitch(
+                api, coordinator, serial_number, ac_zone))
 
     # Add all switches
     async_add_entities(entities)
@@ -58,13 +60,8 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         self._serial_number = serial_number
         self._ac_unit = ac_unit
         self._attr_name = "Continuous Fan"
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                self._serial_number,
-                "switch",
-                self._attr_name,
-            ]
+        self._attr_unique_id = (
+            f"{DOMAIN}_{self._serial_number}_switch_{self._attr_name}"
         )
         self._is_on = self.is_on
 
@@ -139,16 +136,12 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         self._api = api
         self._serial_number = serial_number
         self._zone_number = ac_zone.zone_number
-        self._attr_translation_placeholders = {"zone_number": self._zone_number}
+        self._attr_translation_placeholders = {
+            "zone_number": self._zone_number}
         self._ac_zone = ac_zone
         self._attr_name = f"Zone {self._zone_number} Enabled"
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                self._serial_number,
-                "switch",
-                self._attr_name,
-            ]
+        self._attr_unique_id = (
+            f"{DOMAIN}_{self._serial_number}_switch_{self._attr_name}"
         )
 
     @callback
@@ -166,12 +159,11 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
         """Return true if the switch is on."""
         status = self.coordinator.data
         if status:
-            enabled_zones = status.get("UserAirconSettings", {}).get("EnabledZones", [])
+            enabled_zones = status.get(
+                "UserAirconSettings", {}).get("EnabledZones", [])
             if isinstance(enabled_zones, list):
                 try:
-                    # Ensure the zone number maps correctly
-                    zone_state = enabled_zones[self._zone_number - 1]
-                    return zone_state
+                    return enabled_zones[self._zone_number - 1]
                 except IndexError:
                     _LOGGER.error(
                         "Zone number %s out of range for EnabledZones: %s",
@@ -202,6 +194,7 @@ class ZoneSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_update(self):
         """Fetch the latest data and refresh state."""
-        _LOGGER.debug("Updating Zone %s state from coordinator.", self._zone_number)
+        _LOGGER.debug("Updating Zone %s state from coordinator",
+                      self._zone_number)
         await self.coordinator.async_request_refresh()
         self.async_write_ha_state()

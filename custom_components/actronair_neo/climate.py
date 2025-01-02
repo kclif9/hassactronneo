@@ -3,6 +3,7 @@
 from typing import Any
 
 from actron_neo_api import ActronNeoAPI
+
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -10,15 +11,15 @@ from homeassistant.components.climate import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
-from homeassistant.core import callback, HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
 
-from .device import ACUnit, ACZone
 from .const import DOMAIN
+from .device import ACUnit, ACZone
 
 DEFAULT_TEMPERATURE = None
 DEFAULT_MODE = "OFF"
@@ -32,11 +33,6 @@ FAN_MODE_MAPPING = {
     "high": "HIGH",
 }
 FAN_MODE_MAPPING_REVERSE = {v: k for k, v in FAN_MODE_MAPPING.items()}
-HVAC_MODE_OFF = HVACMode.OFF
-HVAC_MODE_COOL = HVACMode.COOL
-HVAC_MODE_HEAT = HVACMode.HEAT
-HVAC_MODE_AUTO = HVACMode.AUTO
-HVAC_MODE_FAN = HVACMode.FAN_ONLY
 HVAC_MODE_MAPPING = {
     mode.value.upper(): mode
     for mode in [
@@ -58,7 +54,6 @@ AC_ZONE_SUPPORTED_FEATURES = (
     | ClimateEntityFeature.TURN_ON
     | ClimateEntityFeature.TURN_OFF
 )
-TEMP_CELSIUS = UnitOfTemperature.CELSIUS
 
 
 async def async_setup_entry(
@@ -141,16 +136,16 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
             "isOn", DEFAULT_MODE
         )
         if not system_state:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
 
         hvac_mode = self._status.get(
             "UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
-        return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
+        return HVAC_MODE_MAPPING.get(hvac_mode, HVACMode.OFF)
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """Return HVAC Modes."""
-        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
+        return [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO]
 
     @property
     def fan_mode(self) -> str:
@@ -170,7 +165,7 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     @property
     def temperature_unit(self) -> str:
         """Return the temperature unit."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def current_humidity(self) -> float:
@@ -224,7 +219,7 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the HVAC mode."""
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             await self._api.set_system_mode(self._serial_number, is_on=False)
         else:
             await self._api.set_system_mode(
@@ -237,28 +232,26 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
         temp = kwargs.get("temperature")
         hvac_mode = self.hvac_mode.lower()
 
-        if hvac_mode == HVAC_MODE_COOL:
+        if hvac_mode == HVACMode.COOL:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="COOL",
                 temperature=temp,
             )
-        elif hvac_mode == HVAC_MODE_HEAT:
+        elif hvac_mode == HVACMode.HEAT:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="HEAT",
                 temperature=temp,
             )
-        elif hvac_mode == HVAC_MODE_AUTO:
+        elif hvac_mode == HVACMode.AUTO:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="AUTO",
                 temperature={"cool": temp, "heat": temp},
             )
         else:
-            raise ValueError(
-                f"Mode {hvac_mode} is invalid."
-            )
+            raise ValueError(f"Mode {hvac_mode} is invalid.")
         self.async_write_ha_state()
 
     async def async_turn_on_continuous(self, continuous: bool) -> None:
@@ -322,7 +315,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
             "isOn", DEFAULT_MODE
         )
         if not system_state:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
 
         status = self.coordinator.data
         if status:
@@ -334,18 +327,18 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
                     hvac_mode = self._status.get("UserAirconSettings", {}).get(
                         "Mode", DEFAULT_MODE
                     )
-                    return HVAC_MODE_MAPPING.get(hvac_mode, HVAC_MODE_OFF)
-        return HVAC_MODE_OFF
+                    return HVAC_MODE_MAPPING.get(hvac_mode, HVACMode.OFF)
+        return HVACMode.OFF
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """Return HVAC Modes."""
-        return [HVAC_MODE_OFF, HVAC_MODE_COOL, HVAC_MODE_HEAT, HVAC_MODE_AUTO]
+        return [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO]
 
     @property
     def temperature_unit(self) -> str:
         """Return the temperature unit."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def current_humidity(self) -> float:
@@ -417,7 +410,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the HVAC mode."""
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             await self._api.set_zone(
                 serial_number=self._serial_number,
                 zone_number=self._ac_zone.zone_number,
@@ -441,21 +434,21 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
                 f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp})."
             )
 
-        if hvac_mode == HVAC_MODE_COOL:
+        if hvac_mode == HVACMode.COOL:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="COOL",
                 temperature=temp,
                 zone=self._ac_zone.zone_number - 1,
             )
-        elif hvac_mode == HVAC_MODE_HEAT:
+        elif hvac_mode == HVACMode.HEAT:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="HEAT",
                 temperature=temp,
                 zone=self._ac_zone.zone_number - 1,
             )
-        elif hvac_mode == HVAC_MODE_AUTO:
+        elif hvac_mode == HVACMode.AUTO:
             await self._api.set_temperature(
                 self._serial_number,
                 mode="AUTO",
@@ -463,7 +456,5 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
                 zone=self._ac_zone.zone_number - 1,
             )
         else:
-            raise ValueError(
-                f"Mode {hvac_mode} is invalid."
-            )
+            raise ValueError(f"Mode {hvac_mode} is invalid.")
         self.async_write_ha_state()
