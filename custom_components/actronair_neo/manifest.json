@@ -1,12 +1,12 @@
 {
   "domain": "actronair_neo",
   "name": "Actron Air Neo",
-  "version": "0.3.8",
   "codeowners": ["@kclif9"],
   "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/kclif9/actron-neo",
   "iot_class": "cloud_polling",
-  "dependencies": [],
+  "issue_tracker": "https://github.com/kclif9/hassactronneo/issues",
   "requirements": ["actron-neo-api==0.1.30"],
-  "issue_tracker": "https://github.com/kclif9/hassactronneo/issues"
+  "version": "0.3.8"
 }
