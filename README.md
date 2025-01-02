@@ -1,7 +1,7 @@
 # Actron Air Neo Integration
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/kclif9/actron-neo)
-![GitHub](https://img.shields.io/github/license/kclif9/actron-neo)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/kclif9/hassactronneo)
+![GitHub](https://img.shields.io/github/license/kclif9/hassactronneo)
 
 This is a custom integration for Home Assistant to integrate the Actron Air Neo system.
 
@@ -12,12 +12,12 @@ This is a custom integration for Home Assistant to integrate the Actron Air Neo 
 1. Ensure that [HACS](https://hacs.xyz/) is installed.
 2. Go to HACS > Integrations.
 3. Click on the three dots in the top right corner and select "Custom repositories".
-4. Add the repository URL: `https://github.com/kclif9/actron-neo` and select "Integration".
+4. Add the repository URL: `https://github.com/kclif9/hassactronneo` and select "Integration".
 5. Find "Actron Air Neo" in the list and click "Install".
 
 ### Manual Installation
 
-1. Download the `custom_components` directory from the [latest release](https://github.com/kclif9/actron-neo/releases/latest).
+1. Download the `custom_components` directory from the [latest release](https://github.com/kclif9/hassactronneo/releases/latest).
 2. Copy the `custom_components/actronair_neo` directory to your Home Assistant configuration directory.
 
 ## Configuration
@@ -63,4 +63,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Home Assistant](https://www.home-assistant.io/)
 - [HACS](https://hacs.xyz/)
-- [Actron Neo API](https://github.com/kclif9/actron-neo-api)
+- [Actron Neo API](https://github.com/kclif9/actronneoapi)
