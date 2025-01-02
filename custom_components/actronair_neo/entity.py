@@ -1,8 +1,9 @@
 """Sensor platform for Actron Neo integration."""
 
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import Entity, EntityCategory
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -153,9 +154,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._path = path if isinstance(path, list) else [path]
         self._key = key
         self._unit_of_measurement = unit_of_measurement
-        self._attr_unique_id = (
-            f"{zone_peripheral.unique_id}_sensor_{translation_key}_{self._zone_number}"
-        )
+        self._attr_unique_id = f"{zone_peripheral.unique_id}_sensor_{translation_key}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
