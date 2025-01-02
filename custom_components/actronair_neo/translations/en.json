@@ -16,7 +16,9 @@
       }
     },
     "error": {
-      "cannot_connect": "Unable to connect to Actron Air Neo. Please check your credentials and try again."
+      "invalid_auth": "Invalid username or password. Please check your credentials and try again.",
+      "api_error": "An error occurred while connecting to Actron Air Neo. Please try again later.",
+      "no_systems_found": "No systems found in your account. Please check your account and try again."
     }
   },
   "options": {
