@@ -4,6 +4,12 @@
   "codeowners": ["@kclif9"],
   "config_flow": true,
   "dependencies": [],
+  "dhcp": [
+    {
+      "hostname": "NEO-*",
+      "macaddress": "FC0FE7*"
+    }
+  ],
   "documentation": "https://github.com/kclif9/actron-neo",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/kclif9/hassactronneo/issues",
