@@ -1,11 +1,11 @@
 """Setup config flow for Actron Neo integration."""
 
 import logging
-from actron_neo_api import ActronNeoAPI
+from actron_neo_api import ActronNeoAPI, ActronNeoAuthError, ActronNeoAPIError
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from .const import DOMAIN, ERROR_NO_SYSTEMS_FOUND, ERROR_UNKNOWN
+from .const import DOMAIN, ERROR_API_ERROR, ERROR_INVALID_AUTH, ERROR_NO_SYSTEMS_FOUND
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,19 +56,23 @@ class ActronNeoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
 
                 selected_system = ac_systems[0]
+            except ActronNeoAuthError:
+                errors["base"] = ERROR_INVALID_AUTH
+            except ActronNeoAPIError:
+                errors["base"] = ERROR_API_ERROR
+            except ValueError:
+                errors["base"] = ERROR_NO_SYSTEMS_FOUND
+            else:
+                serial_number = selected_system["serial"]
+                await self.async_set_unique_id(serial_number)
+                self._abort_if_unique_id_configured()
                 return self.async_create_entry(
                     title=selected_system["description"],
                     data={
                         "pairing_token": api.pairing_token,
-                        "serial_number": selected_system["serial"],
+                        "serial_number": serial_number,
                     },
                 )
-
-            except ValueError:
-                errors["base"] = ERROR_NO_SYSTEMS_FOUND
-            except Exception as err:
-                _LOGGER.exception("Unexpected exception: %s", err)
-                errors["base"] = ERROR_UNKNOWN
 
         return self.async_show_form(
             step_id="user",
