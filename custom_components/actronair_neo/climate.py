@@ -22,9 +22,6 @@ from homeassistant.helpers.update_coordinator import (
 from .const import DOMAIN
 from .device import ACUnit, ACZone
 
-DEFAULT_TEMPERATURE = None
-DEFAULT_MODE = "OFF"
-DEFAULT_HUMIDITY = None
 DEFAULT_TEMP_MIN = 16.0
 DEFAULT_TEMP_MAX = 32.0
 FAN_MODE_MAPPING = {
@@ -67,7 +64,7 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     api = data["api"]
     coordinator = data["coordinator"]
-    serial_number = entry.data.get("serial_number")
+    serial_number = str(entry.data.get("serial_number"))
     ac_unit = data["ac_unit"]
 
     # Fetch the status and create ZoneSwitches
@@ -133,14 +130,11 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
-        system_state = self._status.get("UserAirconSettings", {}).get(
-            "isOn", DEFAULT_MODE
-        )
+        system_state = self._status.get("UserAirconSettings", {}).get("isOn")
         if not system_state:
             return HVACMode.OFF
 
-        hvac_mode = self._status.get(
-            "UserAirconSettings", {}).get("Mode", DEFAULT_MODE)
+        hvac_mode = self._status.get("UserAirconSettings", {}).get("Mode")
         return HVAC_MODE_MAPPING.get(hvac_mode, HVACMode.OFF)
 
     @property
@@ -152,9 +146,8 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     def fan_mode(self) -> str:
         """Return the current fan mode."""
         api_fan_mode = (
-            self._coordinator.data.get("UserAirconSettings", {})
-            .get("FanMode", DEFAULT_MODE)
-            .upper()
+            self._coordinator.data.get(
+                "UserAirconSettings", {}).get("FanMode").upper()
         )
         return FAN_MODE_MAPPING_REVERSE.get(api_fan_mode, "auto")
 
@@ -171,22 +164,18 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     @property
     def current_humidity(self) -> float:
         """Return the current humidity."""
-        return self._status.get("MasterInfo", {}).get(
-            "LiveHumidity_pc", DEFAULT_HUMIDITY
-        )
+        return self._status.get("MasterInfo", {}).get("LiveHumidity_pc")
 
     @property
     def current_temperature(self) -> float:
         """Return the current temperature."""
-        return self._status.get("MasterInfo", {}).get(
-            "LiveTemp_oC", DEFAULT_TEMPERATURE
-        )
+        return self._status.get("MasterInfo", {}).get("LiveTemp_oC")
 
     @property
     def target_temperature(self) -> float:
         """Return the target temperature."""
         return self._status.get("UserAirconSettings", {}).get(
-            "TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE
+            "TemperatureSetpoint_Cool_oC"
         )
 
     @property
@@ -283,7 +272,8 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
         self._serial_number = serial_number
         self._ac_zone = ac_zone
         self._attr_translation_placeholders = {
-            "zone_number": self._ac_zone.zone_number}
+            "zone_number": str(self._ac_zone.zone_number)
+        }
         self._attr_unique_id = "_".join(
             [
                 DOMAIN,
@@ -312,9 +302,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
-        system_state = self._status.get("UserAirconSettings", {}).get(
-            "isOn", DEFAULT_MODE
-        )
+        system_state = self._status.get("UserAirconSettings", {}).get("isOn")
         if not system_state:
             return HVACMode.OFF
 
@@ -325,9 +313,8 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
             if isinstance(enabled_zones, list):
                 zone_state = enabled_zones[self._ac_zone.zone_number - 1]
                 if zone_state:
-                    hvac_mode = self._status.get("UserAirconSettings", {}).get(
-                        "Mode", DEFAULT_MODE
-                    )
+                    hvac_mode = self._status.get(
+                        "UserAirconSettings", {}).get("Mode")
                     return HVAC_MODE_MAPPING.get(hvac_mode, HVACMode.OFF)
         return HVACMode.OFF
 
@@ -342,30 +329,30 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
         return UnitOfTemperature.CELSIUS
 
     @property
-    def current_humidity(self) -> float:
+    def current_humidity(self) -> float | None:
         """Return the current humidity."""
         zones = self.coordinator.data.get("RemoteZoneInfo", [])
         for zone_number, zone in enumerate(zones, start=1):
             if zone_number == self._ac_zone.zone_number:
-                return zone.get("LiveHumidity_pc", None)
+                return zone.get("LiveHumidity_pc")
         return None
 
     @property
-    def current_temperature(self) -> float:
+    def current_temperature(self) -> float | None:
         """Return the current temperature."""
         zones = self.coordinator.data.get("RemoteZoneInfo", [])
         for zone_number, zone in enumerate(zones, start=1):
             if zone_number == self._ac_zone.zone_number:
-                return zone.get("LiveTemp_oC", None)
+                return zone.get("LiveTemp_oC")
         return None
 
     @property
-    def target_temperature(self) -> float:
+    def target_temperature(self) -> float | None:
         """Return the target temperature."""
         zones = self.coordinator.data.get("RemoteZoneInfo", [])
         for zone_number, zone in enumerate(zones, start=1):
             if zone_number == self._ac_zone.zone_number:
-                return zone.get("TemperatureSetpoint_Cool_oC", None)
+                return zone.get("TemperatureSetpoint_Cool_oC")
         return None
 
     @property
@@ -382,10 +369,10 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
             .get("setCool_Min", DEFAULT_TEMP_MIN)
         )
         target_setpoint = self._status.get("UserAirconSettings", {}).get(
-            "TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE
+            "TemperatureSetpoint_Cool_oC"
         )
         temp_variance = self._status.get("UserAirconSettings", {}).get(
-            "ZoneTemperatureSetpointVariance_oC", DEFAULT_TEMPERATURE
+            "ZoneTemperatureSetpointVariance_oC"
         )
         if min_setpoint > target_setpoint - temp_variance:
             return min_setpoint
@@ -400,10 +387,10 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
             .get("setCool_Max", DEFAULT_TEMP_MAX)
         )
         target_setpoint = self._status.get("UserAirconSettings", {}).get(
-            "TemperatureSetpoint_Cool_oC", DEFAULT_TEMPERATURE
+            "TemperatureSetpoint_Cool_oC"
         )
         temp_variance = self._status.get("UserAirconSettings", {}).get(
-            "ZoneTemperatureSetpointVariance_oC", DEFAULT_TEMPERATURE
+            "ZoneTemperatureSetpointVariance_oC"
         )
         if max_setpoint < target_setpoint + temp_variance:
             return max_setpoint
