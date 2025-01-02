@@ -8,6 +8,10 @@
         "data": {
           "username": "Username",
           "password": "Password"
+        },
+        "data_description": {
+          "username": "Your account username",
+          "password": "Your account password"
         }
       }
     },
