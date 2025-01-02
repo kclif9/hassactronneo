@@ -18,5 +18,10 @@
     },
     "[python]": {
         "editor.formatOnSave": true
-    }
+    },
+    "python.testing.pytestArgs": [
+        "custom_components"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }
