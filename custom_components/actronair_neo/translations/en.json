@@ -32,12 +32,10 @@
   "entity": {
     "climate": {
       "ac_unit": {
-        "name": "AC Unit {serial_number}",
-        "manufacturer": "Actron Air"
+        "name": "AC Unit {serial_number}"
       },
       "ac_zone": {
-        "name": "AC Zone {zone_number}",
-        "manufacturer": "Actron Air"
+        "name": "AC Zone {zone_number}"
       }
     },
     "sensor": {
