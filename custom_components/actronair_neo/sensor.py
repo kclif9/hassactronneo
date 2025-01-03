@@ -5,7 +5,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .device import ACZone, ZonePeripheral
 from .entity import (
     EntitySensor,
@@ -20,13 +19,13 @@ from .entity import (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Actron Air Neo sensors."""
-    data = hass.data[DOMAIN][entry.entry_id]
-    coordinator = data["coordinator"]
-    ac_unit = data["ac_unit"]
+    instance = config_entry.runtime_data
+    coordinator = instance.coordinator
+    ac_unit = instance.ac_unit
 
     # Obtain AC Units
     status = coordinator.data
