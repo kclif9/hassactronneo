@@ -1,4 +1,4 @@
-"""Common device classes for the Actron Air Neo integration"""
+"""Common device classes for the Actron Air Neo integration."""
 
 from .const import DOMAIN
 
@@ -36,11 +36,11 @@ class ACUnit:
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"actronair_neo_{self._serial_number}"
+        return f"{DOMAIN}_{self._serial_number}"
 
     @property
     def manufacturer(self) -> str:
-        """Return the manufacturer name"""
+        """Return the manufacturer name."""
         return self._manufacturer
 
 

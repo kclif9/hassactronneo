@@ -1,16 +1,15 @@
 """The Actron Air Neo integration."""
 
-import logging
+from actron_neo_api import ActronNeoAPI
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from actron_neo_api import ActronNeoAPI
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from .const import DOMAIN, PLATFORMS
 from .coordinator import ActronNeoDataUpdateCoordinator
 from .device import ACUnit
-
-_LOGGER = logging.getLogger(__name__)
+from .models import ActronAirNeoData
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -21,8 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     serial_number = entry.data.get("serial_number")
 
     if not pairing_token or not serial_number:
-        _LOGGER.error("Missing either pairing token or serial number in config entry.")
-        return False
+        raise ConfigEntryAuthFailed("Invalid authentication")
 
     api = ActronNeoAPI(pairing_token=pairing_token)
     await api.refresh_token()
@@ -33,12 +31,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Ensure coordinator data is not None
     if coordinator.data is None:
-        _LOGGER.error("Failed to fetch initial data from the coordinator.")
-        return False
+        raise ConfigEntryNotReady("Unable to retrieve data from the API")
 
     # Fetch system details and set up ACUnit
     system = await api.get_ac_systems()
     ac_unit = ACUnit(serial_number, system, coordinator.data)
+
+    entry.runtime_data = ActronAirNeoData(coordinator, api, ac_unit, serial_number)
 
     # Store objects in hass.data
     hass.data[DOMAIN][entry.entry_id] = {
@@ -60,7 +59,11 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_forward_entry_unload(entry, PLATFORMS)
+    unload_ok = True
+    for platform in PLATFORMS:
+        unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(
+            entry, platform
+        )
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
