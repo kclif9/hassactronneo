@@ -41,7 +41,7 @@
         "name": "AC Unit {serial_number}"
       },
       "ac_zone": {
-        "name": "AC Zone {zone_number}"
+        "name": "AC Zone"
       }
     },
     "sensor": {
@@ -78,11 +78,11 @@
       "temperature": {
         "name": "Temperature"
       },
+      "position": {
+        "name": "Position"
+      },
       "battery": {
         "name": "Battery"
-      },
-      "damper_position": {
-        "name": "Damper Position"
       }
     },
     "switch": {

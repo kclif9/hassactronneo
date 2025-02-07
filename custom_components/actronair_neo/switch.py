@@ -10,6 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import ActronConfigEntry
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,23 +18,23 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ActronConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Actron Neo switches."""
     # Extract API and coordinator from hass.data
-    instance = config_entry.runtime_data
-    api = instance.api
-    coordinator = instance.coordinator
-    serial_number = instance.serial_number
-    ac_unit = instance.ac_unit
+    coordinator = entry.runtime_data
 
     # Fetch the status and create ZoneSwitches
     entities: list[SwitchEntity] = []
 
-    # Create a switch for the continuous fan
-    entities.append(ContinuousFanSwitch(
-        api, coordinator, serial_number, ac_unit))
+    assert coordinator.systems is not None
+
+    systems = coordinator.systems["_embedded"]["ac-system"]
+    for system in systems:
+        description = system["description"]
+        serial_number = system["serial"]
+        entities.append(ContinuousFanSwitch(coordinator, serial_number))
 
     # Add all switches
     async_add_entities(entities)
@@ -45,15 +46,15 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
     _attr_has_entity_name = True
     _attr_translation_key = "continuous_fan"
 
-    def __init__(self, api, coordinator, serial_number, ac_unit) -> None:
+    def __init__(self, coordinator, serial_number) -> None:
         """Initialize the continuous fan switch."""
         super().__init__(coordinator)
-        self._api = api
+        self._api = coordinator.api
         self._serial_number = serial_number
-        self._ac_unit = ac_unit
+        self._status = coordinator.data[self._serial_number]
         self._attr_name = "Continuous Fan"
         self._attr_unique_id = (
-            f"{DOMAIN}_{self._serial_number}_switch_{self._attr_name}"
+            f"{self._serial_number}_{self._attr_name}"
         )
         self._is_on = self.is_on
 
@@ -63,45 +64,33 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
 
     @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device information."""
-        return self._ac_unit.device_info
-
-    @property
     def is_on(self) -> bool:
         """Return true if the switch is on."""
-        status = self.coordinator.data
-        if status:
-            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
-            return fan_mode.endswith("+CONT")
-        return False
+        fan_mode = self._status.get("UserAirconSettings", {}).get("FanMode", "")
+        return fan_mode.endswith("+CONT")
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the continuous fan on."""
         self._is_on = True
         self.async_write_ha_state()
 
-        status = self.coordinator.data
-        if status:
-            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
-            if fan_mode:
-                new_fan_mode = f"{fan_mode.replace('+CONT', '')}+CONT"
-                await self._api.set_fan_mode(
-                    serial_number=self._serial_number, fan_mode=new_fan_mode
-                )
-                await self.coordinator.async_request_refresh()
+        fan_mode = self._status.get("UserAirconSettings", {}).get("FanMode", "")
+        if fan_mode:
+            new_fan_mode = f"{fan_mode.replace('+CONT', '')}+CONT"
+            await self._api.set_fan_mode(
+                serial_number=self._serial_number, fan_mode=new_fan_mode
+            )
+            await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the continuous fan off."""
         self._is_on = False
         self.async_write_ha_state()
 
-        status = self.coordinator.data
-        if status:
-            fan_mode = status.get("UserAirconSettings", {}).get("FanMode", "")
-            if fan_mode:
-                new_fan_mode = fan_mode.replace("+CONT", "")
-                await self._api.set_fan_mode(
-                    serial_number=self._serial_number, fan_mode=new_fan_mode
-                )
-                await self.coordinator.async_request_refresh()
+        fan_mode = self._status.get("UserAirconSettings", {}).get("FanMode", "")
+        if fan_mode:
+            new_fan_mode = fan_mode.replace("+CONT", "")
+            await self._api.set_fan_mode(
+                serial_number=self._serial_number, fan_mode=new_fan_mode
+            )
+            await self.coordinator.async_request_refresh()
