@@ -72,7 +72,8 @@ async def async_setup_entry(
         zones = coordinator.data[serial_number].get("RemoteZoneInfo", [])
 
         # Create zones & sensors
-        for zone_number, zone in enumerate(zones, start=0):
+        zone_map = {zone_number: zone for zone_number, zone in enumerate(zones, start=0)}
+        for zone_number, zone in zone_map.items():
             if zone["NV_Exists"]:
                 # Create zone device
                 zone_name = zone["NV_Title"]
