@@ -45,11 +45,7 @@ class EntitySensor(CoordinatorEntity, Entity):
         self._attr_unit_of_measurement = unit_of_measurement
         self._attr_translation_key = translation_key
         self._attr_unique_id = translation_key
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return {
+        self._attr_device_info = {
             "identifiers": {(DOMAIN, self._serial_number)},
         }
 
@@ -99,11 +95,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         self._attr_unique_id = (
             f"zone_{self._zone_number}_{translation_key}"
         )
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return {
+        self._attr_device_info = {
             "identifiers": {(DOMAIN, f"zone_{self._zone_number}")},
             "name": self._zone["NV_Title"],
             "manufacturer": "Actron Air",
@@ -205,11 +197,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._attr_unique_id = (
             f"{self._serial_number}_{translation_key}"
         )
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return {
+        self._attr_device_info = {
             "identifiers": {(DOMAIN, self._serial_number)},
             "name": f"{self._peripheral["DeviceType"]} {self._logical_address}",
             "manufacturer": "Actron Air",

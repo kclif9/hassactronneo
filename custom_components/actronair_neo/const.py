@@ -1,7 +1,7 @@
 """Constants used by Actron Air Neo integration."""
 
 DOMAIN = "actronair_neo"
-PLATFORM = ["climate"]
+PLATFORM = ["climate", "sensor", "switch"]
 
 ERROR_API_ERROR = "api_error"
 ERROR_INVALID_AUTH = "invalid_auth"

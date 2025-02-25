@@ -4,9 +4,7 @@ import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -32,7 +30,6 @@ async def async_setup_entry(
 
     systems = coordinator.systems["_embedded"]["ac-system"]
     for system in systems:
-        description = system["description"]
         serial_number = system["serial"]
         entities.append(ContinuousFanSwitch(coordinator, serial_number))
 
@@ -57,11 +54,9 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
             f"{self._serial_number}_{self._attr_name}"
         )
         self._is_on = self.is_on
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, self._serial_number)},
+        }
 
     @property
     def is_on(self) -> bool:

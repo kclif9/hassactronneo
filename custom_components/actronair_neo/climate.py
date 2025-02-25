@@ -112,7 +112,7 @@ class ActronSystemClimate(
         self._model_name: str = self._status.get("AirconSystem", {}).get(
             "MasterWCModel"
         )
-        self.attr_device_info = {
+        self._attr_device_info = {
             "identifiers": {(DOMAIN, self._serial_number)},
             "name": self._name,
             "manufacturer": self._manufacturer,
@@ -282,7 +282,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
                 str(self._zone_number),
             ]
         )
-        self.attr_device_info = {
+        self._attr_device_info = {
             "identifiers": {(DOMAIN, f"zone_{self._zone_number}")},
             "name": self._zone_name,
             "manufacturer": "Actron Air",
