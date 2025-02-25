@@ -86,11 +86,17 @@
       }
     },
     "switch": {
+      "away_mode": {
+        "name": "Away Mode"
+      },
       "continuous_fan": {
         "name": "Continuous Fan"
       },
-      "zone_enabled": {
-        "name": "Zone {zone_number} Enabled"
+      "quiet_mode": {
+        "name": "Quiet Mode"
+      },
+      "turbo_mode": {
+        "name": "Turbo Mode"
       }
     }
   }
