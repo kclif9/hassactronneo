@@ -10,24 +10,25 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
 
+from . import ActronConfigEntry
 from .entity import (
     EntitySensor,
     PeripheralBatterySensor,
     PeripheralHumiditySensor,
     PeripheralTemperatureSensor,
     ZoneHumiditySensor,
-    ZonePostionSensor,
+    ZonePositionSensor,
     ZoneTemperatureSensor,
 )
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ActronConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Actron Air Neo sensors."""
-    coordinator = config_entry.runtime_data
+    coordinator = entry.runtime_data
 
     # Diagnostic sensor configurations
     diagnostic_configs = [
@@ -115,10 +116,7 @@ async def async_setup_entry(
 
     entities: list[EntitySensor] = []
 
-    assert coordinator.systems is not None
-
-    systems = coordinator.systems["_embedded"]["ac-system"]
-    for system in systems:
+    for system in coordinator.api.systems:
         serial_number = system["serial"]
 
         # Create diagnostic sensors
@@ -151,7 +149,7 @@ async def async_setup_entry(
         for zone_number, zone in zone_map.items():
             if zone["NV_Exists"]:
                 zone_name = zone["NV_Title"]
-                entities.append(ZonePostionSensor(coordinator, serial_number, zone, zone_number))
+                entities.append(ZonePositionSensor(coordinator, serial_number, zone, zone_number))
                 entities.append(ZoneTemperatureSensor(coordinator, serial_number, zone, zone_number))
                 entities.append(ZoneHumiditySensor(coordinator, serial_number, zone, zone_number))
 
