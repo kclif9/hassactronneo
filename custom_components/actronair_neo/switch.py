@@ -26,10 +26,7 @@ async def async_setup_entry(
     # Fetch the status and create ZoneSwitches
     entities: list[SwitchEntity] = []
 
-    assert coordinator.systems is not None
-
-    systems = coordinator.systems["_embedded"]["ac-system"]
-    for system in systems:
+    for system in coordinator.api.systems:
         serial_number = system["serial"]
         entities.append(AwayModeSwitch(coordinator, serial_number))
         entities.append(ContinuousFanSwitch(coordinator, serial_number))

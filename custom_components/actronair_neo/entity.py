@@ -92,16 +92,10 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         self._attr_device_class = device_class
         self._attr_unit_of_measurement = unit_of_measurement
         self._attr_translation_key = translation_key
-        self._attr_unique_id = (
-            f"zone_{self._zone_number}_{translation_key}"
+        self._attr_unique_id = f"{self._serial_number}_zone_{self._zone_number}_{translation_key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"{self._serial_number}_zone_{self._zone_number}")},
         )
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, f"zone_{self._zone_number}")},
-            "name": self._zone["NV_Title"],
-            "manufacturer": "Actron Air",
-            "model": "Zone",
-            "suggested_area": self._zone["NV_Title"],
-        }
 
     @property
     def state(self) -> str | None:
@@ -113,7 +107,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         return None
 
 
-class ZonePostionSensor(BaseZoneSensor):
+class ZonePositionSensor(BaseZoneSensor):
     """Position sensor for Actron Air Neo zone."""
 
     def __init__(self, coordinator, serial_number, zone, zone_number) -> None:
@@ -197,15 +191,9 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._attr_unique_id = (
             f"{self._serial_number}_{translation_key}"
         )
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._serial_number)},
-            "name": f"{self._peripheral["DeviceType"]} {self._logical_address}",
-            "manufacturer": "Actron Air",
-            "model": self._peripheral["DeviceType"],
-            "sw_version": self._peripheral["Firmware"]["InstalledVersion"]["NRF52"],
-            "serial_number": self._serial_number,
-            "suggested_area": self._zone["NV_Title"],
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._serial_number)},
+        )
 
     @property
     def state(self) -> str | None:
