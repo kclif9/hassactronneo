@@ -10,9 +10,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-type ActronConfigEntry = ConfigEntry[ActronNeoDataUpdateCoordinator]
+from .const import _LOGGER
 
-_LOGGER = logging.getLogger(__name__)
+type ActronConfigEntry = ConfigEntry[ActronNeoDataUpdateCoordinator]
 
 SCAN_INTERVAL = timedelta(seconds=30)
 PARALLEL_UPDATES = 0

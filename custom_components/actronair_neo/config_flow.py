@@ -11,9 +11,7 @@ from homeassistant.const import CONF_API_TOKEN, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import instance_id
 
-from .const import DOMAIN, ERROR_API_ERROR, ERROR_INVALID_AUTH
-
-_LOGGER = logging.getLogger(__name__)
+from .const import _LOGGER, DOMAIN, ERROR_API_ERROR, ERROR_INVALID_AUTH
 
 ACTRON_AIR_SCHEMA = vol.Schema(
     {

@@ -8,9 +8,8 @@ from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature, Enti
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-_LOGGER = logging.getLogger(__name__)
-
 from . import ActronConfigEntry
+from .const import _LOGGER
 from .entity import (
     EntitySensor,
     PeripheralBatterySensor,

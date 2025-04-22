@@ -10,10 +10,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ActronConfigEntry
-from .const import DOMAIN
+from .const import _LOGGER, DOMAIN
 from .entity import CONFIG_CATEGORY
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
