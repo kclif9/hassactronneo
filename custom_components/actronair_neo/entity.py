@@ -10,12 +10,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import ActronNeoDataUpdateCoordinator
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
+from .const import _LOGGER, DOMAIN
 
 DIAGNOSTIC_CATEGORY = EntityCategory.DIAGNOSTIC
-SYSTEM_CATEGORY = EntityCategory.SYSTEM
 CONFIG_CATEGORY = EntityCategory.CONFIG
 
 
@@ -58,6 +55,9 @@ class EntitySensor(CoordinatorEntity, Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
+        if self.coordinator.is_device_stale(self._serial_number):
+            return False
+
         return (
             self.coordinator.last_update_success
             and self._serial_number in self.coordinator.data
@@ -128,17 +128,14 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return (
-            self.coordinator.last_update_success
-            and self._serial_number in self.coordinator.data
-        )
+        if self.coordinator.is_device_stale(self._serial_number):
+            return False
+
+        return self.state is not None
 
     @property
     def state(self) -> str | None:
         """Return the state of the sensor."""
-        if not self.available:
-            return None
-
         zones = self.coordinator.data.get(self._serial_number, {}).get("RemoteZoneInfo", [])
         for zone_number, zone in enumerate(zones, start=0):
             if zone_number == self._zone_number:
@@ -231,7 +228,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._serial_number = serial_number
-        self._status = coordinator.data.get(self._serial_number, {}) if coordinator.data else {}
+        self._status = coordinator.data[self._serial_number]
         self._zone = zone
         self._peripheral = peripheral
         self._logical_address = peripheral["LogicalAddress"]
@@ -253,23 +250,23 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return (
-            self.coordinator.last_update_success
-            and self._serial_number in self.coordinator.data
-        )
+        if self.coordinator.is_device_stale(self._serial_number):
+            return False
+
+        return self.state is not None
 
     @property
     def state(self) -> str | None:
         """Return the state of the sensor."""
-        if not self.available:
-            return None
-
         # Look up the state using the state key in the data.
-        data_source = self.coordinator.data.get(self._serial_number, {}).get("AirconSystem", {}).get(
+        _LOGGER.debug("Peripheral state: %s", self._status)
+        _LOGGER.debug("Logical address: %s", self._logical_address)
+        data_source = self._status.get("AirconSystem", {}).get(
             "Peripherals", []
         )
         for peripheral in data_source:
             if peripheral["LogicalAddress"] == self._logical_address:
+                _LOGGER.debug("Peripheral data: %s", peripheral)
                 for key in self._path:
                     peripheral = peripheral.get(key, {})
                 return peripheral.get(self._key, None)

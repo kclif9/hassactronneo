@@ -10,10 +10,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ActronConfigEntry
-from .const import DOMAIN
+from .const import _LOGGER, DOMAIN
 from .entity import CONFIG_CATEGORY
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -97,6 +95,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "continuous_fan"
+    _attr_entity_category = CONFIG_CATEGORY
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_entity_registry_enabled_default = True
 
@@ -160,6 +159,7 @@ class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "quiet_mode"
+    _attr_entity_category = CONFIG_CATEGORY
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_entity_registry_enabled_default = True
 
@@ -216,6 +216,7 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "turbo_mode"
+    _attr_entity_category = CONFIG_CATEGORY
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_entity_registry_enabled_default = True
 

@@ -11,9 +11,7 @@ from homeassistant.const import CONF_API_TOKEN, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import instance_id
 
-from .const import DOMAIN, ERROR_API_ERROR, ERROR_INVALID_AUTH
-
-_LOGGER = logging.getLogger(__name__)
+from .const import _LOGGER, DOMAIN, ERROR_API_ERROR, ERROR_INVALID_AUTH
 
 ACTRON_AIR_SCHEMA = vol.Schema(
     {
@@ -144,4 +142,50 @@ class ActronNeoOptionsFlow(OptionsFlowWithConfigEntry):
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
-        return self.async_abort(reason="not_supported")
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Create options schema with current values as defaults
+        options_schema = vol.Schema(
+            {
+                vol.Optional("reconfigure", default=False): bool,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=options_schema,
+        )
+
+    async def async_step_reconfigure(self, user_input=None):
+        """Reconfigure the integration."""
+        errors = {}
+
+        if user_input is not None:
+            username = user_input[CONF_USERNAME]
+            password = user_input[CONF_PASSWORD]
+
+            try:
+                api = ActronNeoAPI(username, password)
+                instance_uuid = await instance_id.async_get(self.hass)
+                await api.request_pairing_token("HomeAssistant", instance_uuid)
+                await api.refresh_token()
+
+                # Update the config entry with the new token
+                return self.async_update_reload_and_abort(
+                    self.config_entry,
+                    data={
+                        CONF_API_TOKEN: api.pairing_token,
+                    },
+                    reason="reconfiguration_successful",
+                )
+            except ActronNeoAuthError:
+                errors["base"] = ERROR_INVALID_AUTH
+            except ActronNeoAPIError:
+                errors["base"] = ERROR_API_ERROR
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=ACTRON_AIR_SCHEMA,
+            errors=errors,
+        )
