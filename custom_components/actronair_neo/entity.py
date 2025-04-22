@@ -55,6 +55,9 @@ class EntitySensor(CoordinatorEntity, Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
+        if self.coordinator.is_device_stale(self._serial_number):
+            return False
+
         return (
             self.coordinator.last_update_success
             and self._serial_number in self.coordinator.data
@@ -125,6 +128,9 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
+        if self.coordinator.is_device_stale(self._serial_number):
+            return False
+
         return self.state is not None
 
     @property
@@ -244,6 +250,9 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
+        if self.coordinator.is_device_stale(self._serial_number):
+            return False
+
         return self.state is not None
 
     @property
