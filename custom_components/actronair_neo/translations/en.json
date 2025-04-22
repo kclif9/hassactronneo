@@ -13,19 +13,41 @@
           "username": "Your account username",
           "password": "Your account password"
         }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate with Actron Air Neo",
+        "description": "Your authentication for account {account} has expired. Please re-enter your credentials to continue."
       }
     },
     "error": {
       "invalid_auth": "Invalid username or password. Please check your credentials and try again.",
       "api_error": "An error occurred while connecting to Actron Air Neo. Please try again later.",
-      "no_systems_found": "No systems found in your account. Please check your account and try again."
+      "no_systems_found": "No systems found in your account. Please check your account and try again.",
+      "cannot_connect": "Failed to connect to Actron Air Neo. Please check your internet connection and try again.",
+      "unknown": "An unexpected error occurred. Please try again later."
+    },
+    "abort": {
+      "already_configured": "This Actron Air Neo account is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfiguration_successful": "Reconfiguration was successful."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Actron Air Neo Options",
-        "description": "Configure options for the Actron Air Neo integration."
+        "description": "Configure options for the Actron Air Neo integration.",
+        "data": {
+          "reconfigure": "Reconfigure account credentials"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Actron Air Neo Account",
+        "description": "Update your Actron Air Neo account credentials.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
       }
     }
   },
@@ -99,5 +121,12 @@
         "name": "Turbo Mode"
       }
     }
+  },
+  "exceptions": {
+    "invalid_auth": "Authentication failed: Please check your credentials and try again.",
+    "cannot_connect": "Connection failed: Unable to connect to Actron Air. Check your network and try again.",
+    "unknown": "Unexpected error: An unknown error occurred.",
+    "timeout": "Connection timeout: The request timed out. Try again later.",
+    "api_error": "API error: The Actron Air Neo API returned an error."
   }
 }
