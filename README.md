@@ -58,24 +58,189 @@ The integration requires the following information during setup:
 - **Sensors**: Monitor various sensors such as temperature, humidity, and system status.
 - **Switches**: Control switches for continuous fan and zone control.
 
-## Supported Platforms
+## Supported Devices
 
-- `climate`
-- `sensor`
-- `switch`
+This integration supports the following Actron Air Neo devices:
 
-## Example Configuration
+- **Actron Air Neo Series**: All models of the Neo Series air conditioners
+- **Zone Controllers**: Control individual zones within your system
+- **Wall Controllers**: Compatible with Neo wall controller units
+- **Temperature/Humidity Sensors**: Compatible with Neo remote temperature sensors
 
-No YAML configuration is needed. The integration is configured via the Home Assistant UI.
+The integration does not currently support older Actron Air models that are not part of the Neo ecosystem.
+
+## Supported Functions
+
+The integration supports the following functions:
+
+### Climate Controls
+- Turn the air conditioning system on/off
+- Change operating mode (Cool, Heat, Fan, Auto)
+- Set target temperature
+- Change fan speed (Auto, Low, Medium, High)
+- Enable/disable continuous fan operation
+
+### Zone Controls
+- Turn individual zones on/off
+- Set zone-specific temperatures
+- Monitor zone temperature and humidity
+
+### Sensors
+- System temperature sensors
+- Zone temperature sensors
+- System humidity sensors
+- Zone humidity sensors
+- Battery levels for wireless components
+- System status indicators
+- Fan speed indicators
+
+## Data Updates
+
+The integration updates data using the following approach:
+
+- **Update Frequency**: Data is polled from the Actron Air Neo cloud service every 30 seconds.
+- **Update Method**: The integration uses a cloud polling approach as specified by the `iot_class: cloud_polling` in the integration manifest.
+- **Coordinator Pattern**: All entities share a common update coordinator to minimize API calls and improve performance.
+- **Token Refresh**: Authentication tokens are automatically refreshed when they expire.
+- **API Limits**: The integration respects the API rate limits of the Actron Air Neo cloud service to prevent lockouts.
+
+## Example Use Cases
+
+Here are some common use cases for the Actron Air Neo integration:
+
+### Basic Climate Automation
+
+```yaml
+# Turn on AC when temperature rises above threshold
+automation:
+  - alias: "Turn on AC when hot"
+    trigger:
+      platform: numeric_state
+      entity_id: sensor.living_room_temperature
+      above: 26
+    action:
+      service: climate.set_hvac_mode
+      target:
+        entity_id: climate.living_room
+      data:
+        hvac_mode: cool
+```
+
+### Zone-Based Control
+
+```yaml
+# Turn on bedroom zone at night
+automation:
+  - alias: "Bedroom AC at night"
+    trigger:
+      platform: time
+      at: "22:00:00"
+    condition:
+      condition: numeric_state
+      entity_id: sensor.bedroom_temperature
+      above: 24
+    action:
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.bedroom_zone
+        data:
+          temperature: 22
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.bedroom_zone
+        data:
+          hvac_mode: cool
+```
+
+### Using Continuous Fan Mode
+
+```yaml
+# Set continuous fan mode during certain hours
+automation:
+  - alias: "Continuous fan during day"
+    trigger:
+      platform: time
+      at: "09:00:00"
+    action:
+      service: switch.turn_on
+      target:
+        entity_id: switch.neo_continuous_fan
+```
+
+## Known Limitations
+
+The integration has the following known limitations:
+
+- **Cloud Dependency**: The integration relies on the Actron Air Neo cloud service, so internet connectivity is required for operation.
+- **Zone Configuration**: Zone names and configurations are determined Neo controller and cannot be changed from Home Assistant.
+- **System-Level Settings**: Some advanced system-level settings can only be modified through the Neo wall controller.
+- **Firmware Updates**: The integration does not support triggering firmware updates, which must be done through the Neo wall controller.
 
 ## Troubleshooting
 
 If you encounter issues, please check the Home Assistant logs for any error messages related to the `actronair_neo` integration.
 
-Common issues:
-- **Authentication errors**: Verify your username and password are correct.
-- **Connection errors**: Ensure your Actron Air Neo system is connected to the internet.
-- **API errors**: The Actron Air Neo cloud service might be temporarily unavailable.
+### Common Issues
+
+#### Authentication Errors
+- **Symptom**: Unable to authenticate, entities show as unavailable
+- **Possible Causes**:
+  - Incorrect username or password
+  - Expired authentication token
+  - Account has been locked out due to too many failed attempts
+- **Solutions**:
+  - Verify your credentials are correct
+  - Go to the integration in Home Assistant, click "Configure" and re-enter your credentials
+  - Wait a few minutes if you suspect a rate limit or lockout
+
+#### Connection Errors
+- **Symptom**: Entities unavailable, cannot control system
+- **Possible Causes**:
+  - Actron Air Neo cloud service is down
+  - Your internet connection is disrupted
+  - Your Actron Neo system is offline
+- **Solutions**:
+  - Check your internet connection
+  - Verify the Actron Air Neo system is powered on and connected to WiFi
+  - Check if the official Actron Air app can connect to your system
+
+#### Zone Control Issues
+- **Symptom**: Cannot control individual zones
+- **Possible Causes**:
+  - Zone controller is offline
+  - System-level issue preventing zone control
+- **Solutions**:
+  - Check if zones can be controlled from the official app
+  - Ensure the main system is running and available
+  - Check that zone controllers have power
+
+#### API Errors
+- **Symptom**: Errors in logs mentioning API issues, "too many requests", or timeouts
+- **Possible Causes**:
+  - Rate limiting by the Actron Air Neo cloud service
+  - API changes by Actron Air
+- **Solutions**:
+  - Reduce the number of automations that control the system
+  - Update to the latest version of the integration
+  - Check the GitHub repository for known issues
+
+#### System Functionality Limitations
+- **Symptom**: Cannot access certain features available in the official app
+- **Solution**: Some advanced features are only available through the official app. Use the app for those functions.
+
+### Log Checking
+
+To check your logs for troubleshooting:
+
+1. Go to Home Assistant "Settings" > "System" > "Logs"
+2. Filter for "actronair_neo" to see messages specific to this integration
+3. Look for error messages that can help identify the issue
+
+If you need further assistance, please open an issue on the [GitHub repository](https://github.com/kclif9/hassactronneo/issues) with the following information:
+- Description of the problem
+- Relevant log entries
+- Home Assistant version
+- Integration version
 
 ## Removing the Integration
 

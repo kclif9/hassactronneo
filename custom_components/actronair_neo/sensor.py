@@ -4,7 +4,7 @@ import logging
 
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature
+from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -19,6 +19,9 @@ from .entity import (
     ZoneHumiditySensor,
     ZonePositionSensor,
     ZoneTemperatureSensor,
+    DIAGNOSTIC_CATEGORY,
+    CONFIG_CATEGORY,
+    SYSTEM_CATEGORY,
 )
 
 
@@ -30,15 +33,16 @@ async def async_setup_entry(
     """Set up Actron Air Neo sensors."""
     coordinator = entry.runtime_data
 
-    # Diagnostic sensor configurations
-    diagnostic_configs = [
+    # Sensor configurations with appropriate entity categories
+    # Format: translation_key, path, key, device_class, unit, entity_category
+    sensor_configs = [
         (
             "clean_filter",
             ["Alerts"],
             "CleanFilter",
             None,
             None,
-            False,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "defrost_mode",
@@ -46,7 +50,7 @@ async def async_setup_entry(
             "Defrosting",
             None,
             None,
-            False,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "compressor_chasing_temperature",
@@ -54,7 +58,7 @@ async def async_setup_entry(
             "CompressorChasingTemperature",
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
-            True,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "compressor_live_temperature",
@@ -62,7 +66,7 @@ async def async_setup_entry(
             "CompressorLiveTemperature",
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
-            True,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "compressor_mode",
@@ -70,7 +74,7 @@ async def async_setup_entry(
             "CompressorMode",
             None,
             None,
-            True,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "system_on",
@@ -78,7 +82,7 @@ async def async_setup_entry(
             "isOn",
             None,
             None,
-            False,
+            None,
         ),
         (
             "compressor_speed",
@@ -86,7 +90,7 @@ async def async_setup_entry(
             "CompSpeed",
             SensorDeviceClass.SPEED,
             None,
-            True,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "compressor_power",
@@ -94,7 +98,7 @@ async def async_setup_entry(
             "CompPower",
             SensorDeviceClass.POWER,
             UnitOfPower.WATT,
-            True,
+            DIAGNOSTIC_CATEGORY,
         ),
         (
             "outdoor_temperature",
@@ -102,7 +106,7 @@ async def async_setup_entry(
             "LiveOutdoorTemp_oC",
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
-            False,
+            None,
         ),
         (
             "humidity",
@@ -110,7 +114,7 @@ async def async_setup_entry(
             "LiveHumidity_pc",
             SensorDeviceClass.HUMIDITY,
             PERCENTAGE,
-            False,
+            None,
         ),
     ]
 
@@ -119,15 +123,15 @@ async def async_setup_entry(
     for system in coordinator.api.systems:
         serial_number = system["serial"]
 
-        # Create diagnostic sensors
+        # Create sensors with appropriate categories
         for (
             translation_key,
             path,
             key,
             device_class,
             unit,
-            diagnostic_sensor,
-        ) in diagnostic_configs:
+            entity_category,
+        ) in sensor_configs:
             entities.append(
                 EntitySensor(
                     coordinator,
@@ -137,7 +141,8 @@ async def async_setup_entry(
                     key,
                     device_class,
                     unit,
-                    diagnostic_sensor,
+                    is_diagnostic=False,
+                    entity_category=entity_category,
                 )
             )
 

@@ -15,6 +15,8 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 DIAGNOSTIC_CATEGORY = EntityCategory.DIAGNOSTIC
+SYSTEM_CATEGORY = EntityCategory.SYSTEM
+CONFIG_CATEGORY = EntityCategory.CONFIG
 
 
 class EntitySensor(CoordinatorEntity, Entity):
@@ -32,15 +34,17 @@ class EntitySensor(CoordinatorEntity, Entity):
         device_class=None,
         unit_of_measurement=None,
         is_diagnostic=False,
+        entity_category=None,
     ) -> None:
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
         self._path = path if isinstance(path, list) else [
-            path]  # Ensure path is a list
+            path]
         self._key = key
         self._serial_number = serial_number
         self._status = coordinator.data.get(self._serial_number, {}) if coordinator.data else {}
         self._is_diagnostic = is_diagnostic
+        self._entity_category = entity_category
         self._attr_device_class = device_class
         self._attr_unit_of_measurement = unit_of_measurement
         self._attr_translation_key = translation_key
@@ -73,7 +77,9 @@ class EntitySensor(CoordinatorEntity, Entity):
 
     @property
     def entity_category(self) -> EntityCategory | None:
-        """Return the entity category if the sensor is diagnostic."""
+        """Return the entity category."""
+        if self._entity_category:
+            return self._entity_category
         return DIAGNOSTIC_CATEGORY if self._is_diagnostic else None
 
 
@@ -92,6 +98,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         state_key,
         device_class,
         unit_of_measurement,
+        entity_category=None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -100,6 +107,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         self._zone = zone
         self._zone_number = zone_number
         self._state_key = state_key
+        self._entity_category = entity_category
         self._attr_device_class = device_class
         self._attr_unit_of_measurement = unit_of_measurement
         self._attr_translation_key = translation_key
@@ -128,6 +136,11 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
                 return zone.get(self._state_key, None)
         return None
 
+    @property
+    def entity_category(self) -> EntityCategory | None:
+        """Return the entity category."""
+        return self._entity_category
+
 
 class ZonePositionSensor(BaseZoneSensor):
     """Position sensor for Actron Air Neo zone."""
@@ -143,6 +156,7 @@ class ZonePositionSensor(BaseZoneSensor):
             "ZonePosition",
             SensorDeviceClass.HUMIDITY,
             PERCENTAGE,
+            entity_category=DIAGNOSTIC_CATEGORY,
         )
 
 
@@ -159,7 +173,7 @@ class ZoneTemperatureSensor(BaseZoneSensor):
             "temperature",
             "LiveTemp_oC",
             SensorDeviceClass.TEMPERATURE,
-            UnitOfTemperature.CELSIUS,
+            UnitOfTemperature.CELSIUS
         )
 
 
@@ -176,7 +190,7 @@ class ZoneHumiditySensor(BaseZoneSensor):
             "humidity",
             "LiveHumidity_pc",
             SensorDeviceClass.HUMIDITY,
-            PERCENTAGE,
+            PERCENTAGE
         )
 
 
@@ -196,6 +210,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         key,
         device_class,
         unit_of_measurement,
+        entity_category=None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -207,6 +222,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._path = path if isinstance(path, list) else [path]
         self._key = key
         self._serial_number = self._peripheral["SerialNumber"]
+        self._entity_category = entity_category
         self._attr_device_class = device_class
         self._attr_unit_of_measurement = unit_of_measurement
         self._attr_translation_key = translation_key
@@ -242,6 +258,11 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
                 return peripheral.get(self._key, None)
         return None
 
+    @property
+    def entity_category(self) -> EntityCategory | None:
+        """Return the entity category."""
+        return self._entity_category
+
 
 class PeripheralBatterySensor(BasePeripheralSensor):
     """Battery sensor for Actron Air Neo zone."""
@@ -258,6 +279,7 @@ class PeripheralBatterySensor(BasePeripheralSensor):
             "RemainingBatteryCapacity_pc",
             SensorDeviceClass.BATTERY,
             PERCENTAGE,
+            entity_category=DIAGNOSTIC_CATEGORY,
         )
 
 
@@ -275,7 +297,7 @@ class PeripheralTemperatureSensor(BasePeripheralSensor):
             ["SensorInputs", "SHTC1"],
             "Temperature_oC",
             SensorDeviceClass.TEMPERATURE,
-            UnitOfTemperature.CELSIUS,
+            UnitOfTemperature.CELSIUS
         )
 
 
@@ -293,5 +315,5 @@ class PeripheralHumiditySensor(BasePeripheralSensor):
             ["SensorInputs", "SHTC1"],
             "RelativeHumidity_pc",
             SensorDeviceClass.HUMIDITY,
-            PERCENTAGE,
+            PERCENTAGE
         )
