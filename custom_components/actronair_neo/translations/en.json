@@ -123,19 +123,32 @@
     }
   },
   "exceptions": {
-    "invalid_auth": "Authentication failed: Please check your credentials and try again.",
-    "cannot_connect": "Connection failed: Unable to connect to Actron Air. Check your network and try again.",
-    "unknown": "Unexpected error: An unknown error occurred.",
-    "timeout": "Connection timeout: The request timed out. Try again later.",
-    "api_error": "API error: The Actron Air Neo API returned an error."
+    "invalid_auth": {
+      "title": "Invalid authentication",
+      "description": "Authentication failed: Please check your credentials and try again."
+    },
+    "cannot_connect": {
+      "title": "Connection failure",
+      "description": "Connection failed: Unable to connect to Actron Air. Check your network and try again."
+    },
+    "unknown": {
+      "title": "Unknown error",
+      "description": "Unexpected error: An unknown error occurred."
+    },
+    "timeout": {
+      "title": "Connection timeout",
+      "description": "The request timed out. Try again later."
+    },
+    "api_error": {
+      "title": "API error",
+      "description": "The Actron Air Neo API returned an error."
+    }
   },
   "issues": {
     "stale_auth": {
       "title": "Actron Air Neo authentication expired",
       "description": "The authentication for your {name} Actron Air Neo account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air Neo account."
-        }
-  },
-  "repairs": {
+    },
     "confirm": {
       "title": "Confirm repair",
       "description": "Do you want to apply this repair?"
