@@ -15,7 +15,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 DIAGNOSTIC_CATEGORY = EntityCategory.DIAGNOSTIC
-SYSTEM_CATEGORY = EntityCategory.SYSTEM
 CONFIG_CATEGORY = EntityCategory.CONFIG
 
 

@@ -21,7 +21,6 @@ from .entity import (
     ZoneTemperatureSensor,
     DIAGNOSTIC_CATEGORY,
     CONFIG_CATEGORY,
-    SYSTEM_CATEGORY,
 )
 
 

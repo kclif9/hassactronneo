@@ -97,6 +97,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "continuous_fan"
+    _attr_entity_category = CONFIG_CATEGORY
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_entity_registry_enabled_default = True
 
@@ -160,6 +161,7 @@ class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "quiet_mode"
+    _attr_entity_category = CONFIG_CATEGORY
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_entity_registry_enabled_default = True
 
@@ -216,6 +218,7 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "turbo_mode"
+    _attr_entity_category = CONFIG_CATEGORY
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_entity_registry_enabled_default = True
 
