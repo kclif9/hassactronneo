@@ -184,5 +184,17 @@
         }
       }
     }
+  },
+  "issues": {
+    "stale_auth": {
+      "title": "Actron Air Neo authentication expired",
+      "description": "The authentication for your {name} Actron Air Neo account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air Neo account."
+    }
+  },
+  "repairs": {
+    "confirm": {
+      "title": "Confirm repair",
+      "description": "Do you want to apply this repair?"
+    }
   }
 }
