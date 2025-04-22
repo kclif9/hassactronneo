@@ -39,7 +39,7 @@ class EntitySensor(CoordinatorEntity, Entity):
             path]  # Ensure path is a list
         self._key = key
         self._serial_number = serial_number
-        self._status = coordinator.data[self._serial_number]
+        self._status = coordinator.data.get(self._serial_number, {}) if coordinator.data else {}
         self._is_diagnostic = is_diagnostic
         self._attr_device_class = device_class
         self._attr_unit_of_measurement = unit_of_measurement
@@ -50,9 +50,20 @@ class EntitySensor(CoordinatorEntity, Entity):
         }
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return (
+            self.coordinator.last_update_success
+            and self._serial_number in self.coordinator.data
+        )
+
+    @property
     def state(self):
         """Return the state of the sensor."""
-        data = self._status
+        if not self.available:
+            return None
+
+        data = self.coordinator.data.get(self._serial_number, {})
         if data:
             # Traverse the path dynamically
             for key in self._path:
@@ -85,7 +96,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._serial_number = serial_number
-        self._status = coordinator.data[self._serial_number]
+        self._status = coordinator.data.get(self._serial_number, {}) if coordinator.data else {}
         self._zone = zone
         self._zone_number = zone_number
         self._state_key = state_key
@@ -98,9 +109,20 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         )
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return (
+            self.coordinator.last_update_success
+            and self._serial_number in self.coordinator.data
+        )
+
+    @property
     def state(self) -> str | None:
         """Return the state of the sensor."""
-        zones = self._status.get("RemoteZoneInfo", [])
+        if not self.available:
+            return None
+
+        zones = self.coordinator.data.get(self._serial_number, {}).get("RemoteZoneInfo", [])
         for zone_number, zone in enumerate(zones, start=0):
             if zone_number == self._zone_number:
                 return zone.get(self._state_key, None)
@@ -178,7 +200,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._serial_number = serial_number
-        self._status = coordinator.data[self._serial_number]
+        self._status = coordinator.data.get(self._serial_number, {}) if coordinator.data else {}
         self._zone = zone
         self._peripheral = peripheral
         self._logical_address = peripheral["LogicalAddress"]
@@ -196,10 +218,21 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         )
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return (
+            self.coordinator.last_update_success
+            and self._serial_number in self.coordinator.data
+        )
+
+    @property
     def state(self) -> str | None:
         """Return the state of the sensor."""
+        if not self.available:
+            return None
+
         # Look up the state using the state key in the data.
-        data_source = self._status.get("AirconSystem", {}).get(
+        data_source = self.coordinator.data.get(self._serial_number, {}).get("AirconSystem", {}).get(
             "Peripherals", []
         )
         for peripheral in data_source:
