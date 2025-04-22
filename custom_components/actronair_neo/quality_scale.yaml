@@ -30,14 +30,14 @@ rules:
     status: exempt
     comment: This integration does not have custom service actions.
   config-entry-unloading: done
-  docs-configuration-parameters: todo
-  docs-installation-parameters: todo
-  entity-unavailable: todo
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
   integration-owner: done
-  log-when-unavailable: todo
-  parallel-updates: todo
-  reauthentication-flow: todo
-  test-coverage: todo
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow: done
+  test-coverage: done
 
   # Gold
   devices: done
