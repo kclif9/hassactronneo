@@ -15,6 +15,7 @@ type ActronConfigEntry = ConfigEntry[ActronNeoDataUpdateCoordinator]
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=30)
+PARALLEL_UPDATES = 0
 
 
 class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):

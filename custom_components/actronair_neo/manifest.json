@@ -15,7 +15,6 @@
   "documentation": "https://github.com/kclif9/actron-neo",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/kclif9/hassactronneo/issues",
-  "parallel_updates": true,
   "requirements": [
     "actron-neo-api==0.1.52"
   ],
