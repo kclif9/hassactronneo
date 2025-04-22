@@ -71,7 +71,7 @@ def test_entity_sensor_init(mock_coordinator):
         "FanSpeed",
         is_diagnostic=True,
     )
-    
+
     assert sensor._path == ["SystemStatus"]
     assert sensor._key == "FanSpeed"
     assert sensor._serial_number == "123456"
@@ -92,14 +92,14 @@ def test_entity_sensor_state(mock_coordinator):
         "SystemStatus",
         "FanSpeed",
     )
-    
+
     assert sensor.state == "High"
 
 
 def test_entity_sensor_unavailable(mock_coordinator):
     """Test unavailable state of entity sensor."""
     mock_coordinator.last_update_success = False
-    
+
     sensor = EntitySensor(
         mock_coordinator,
         "123456",
@@ -107,7 +107,7 @@ def test_entity_sensor_unavailable(mock_coordinator):
         "SystemStatus",
         "FanSpeed",
     )
-    
+
     assert sensor.available is False
     assert sensor.state is None
 
@@ -116,7 +116,7 @@ def test_entity_sensor_missing_data(mock_coordinator):
     """Test entity sensor with missing data."""
     # Change coordinator data to not include the key
     mock_coordinator.data = {"123456": {"SystemStatus": {}}}
-    
+
     sensor = EntitySensor(
         mock_coordinator,
         "123456",
@@ -124,7 +124,7 @@ def test_entity_sensor_missing_data(mock_coordinator):
         "SystemStatus",
         "FanSpeed",
     )
-    
+
     assert sensor.state is None
 
 
@@ -136,7 +136,7 @@ def test_zone_temperature_sensor(mock_coordinator):
         {"ZonePosition": 50, "LiveTemp_oC": 22.5, "LiveHumidity_pc": 45},
         0,
     )
-    
+
     assert sensor._attr_device_class == SensorDeviceClass.TEMPERATURE
     assert sensor._attr_unit_of_measurement == UnitOfTemperature.CELSIUS
     assert sensor._attr_translation_key == "temperature"
@@ -152,7 +152,7 @@ def test_zone_humidity_sensor(mock_coordinator):
         {"ZonePosition": 50, "LiveTemp_oC": 22.5, "LiveHumidity_pc": 45},
         0,
     )
-    
+
     assert sensor._attr_device_class == SensorDeviceClass.HUMIDITY
     assert sensor._attr_unit_of_measurement == PERCENTAGE
     assert sensor._attr_translation_key == "humidity"
@@ -173,14 +173,14 @@ def test_peripheral_temperature_sensor(mock_coordinator):
             }
         },
     }
-    
+
     sensor = PeripheralTemperatureSensor(
         mock_coordinator,
         "123456",
         0,
         peripheral,
     )
-    
+
     assert sensor._attr_device_class == SensorDeviceClass.TEMPERATURE
     assert sensor._attr_unit_of_measurement == UnitOfTemperature.CELSIUS
     assert sensor._attr_translation_key == "temperature"
@@ -191,18 +191,18 @@ def test_peripheral_temperature_sensor(mock_coordinator):
 def test_peripheral_sensor_unavailable(mock_coordinator):
     """Test unavailable state of peripheral sensor."""
     mock_coordinator.last_update_success = False
-    
+
     peripheral = {
         "LogicalAddress": "LA001",
         "SerialNumber": "SN001",
     }
-    
+
     sensor = PeripheralTemperatureSensor(
         mock_coordinator,
         "123456",
         0,
         peripheral,
     )
-    
+
     assert sensor.available is False
     assert sensor.state is None

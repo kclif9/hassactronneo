@@ -35,7 +35,7 @@ def mock_coordinator():
     coordinator.api.set_system_mode = AsyncMock()
     coordinator.api.set_temperature = AsyncMock()
     coordinator.api.set_zone = AsyncMock()
-    
+
     coordinator.data = {
         "12345": {
             "UserAirconSettings": {
@@ -96,15 +96,15 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_coordinator):
     """Test the climate platform setup."""
     entry = Mock()
     entry.runtime_data = mock_coordinator
-    
+
     entities = []
-    
+
     async def async_add_entities_mock(new_entities):
         nonlocal entities
         entities.extend(new_entities)
-    
+
     await async_setup_entry(hass, entry, async_add_entities_mock)
-    
+
     # Should create 1 system entity and 3 zone entities (for 3 zones)
     assert len(entities) == 4
     assert isinstance(entities[0], ActronSystemClimate)
@@ -116,7 +116,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_coordinator):
 def test_system_climate_init(mock_coordinator):
     """Test system climate entity initialization."""
     climate = ActronSystemClimate(mock_coordinator, "12345", "Living Room")
-    
+
     assert climate._serial_number == "12345"
     assert climate.temperature_unit == UnitOfTemperature.CELSIUS
     assert climate.supported_features == (
@@ -140,7 +140,7 @@ def test_system_climate_init(mock_coordinator):
 def test_system_climate_properties(mock_coordinator):
     """Test system climate entity properties."""
     climate = ActronSystemClimate(mock_coordinator, "12345", "Living Room")
-    
+
     assert climate.hvac_mode == HVACMode.COOL
     assert climate.hvac_modes == [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO]
     assert climate.fan_mode == "auto"
@@ -154,9 +154,9 @@ def test_system_climate_properties(mock_coordinator):
 async def test_system_climate_set_fan_mode(mock_coordinator):
     """Test setting fan mode."""
     climate = ActronSystemClimate(mock_coordinator, "12345", "Living Room")
-    
+
     await climate.async_set_fan_mode("medium")
-    
+
     mock_coordinator.api.set_fan_mode.assert_called_once_with("12345", fan_mode="MED")
     assert climate._status["UserAirconSettings"]["FanMode"] == "MED"
 
@@ -164,13 +164,13 @@ async def test_system_climate_set_fan_mode(mock_coordinator):
 async def test_system_climate_set_hvac_mode(mock_coordinator):
     """Test setting HVAC mode."""
     climate = ActronSystemClimate(mock_coordinator, "12345", "Living Room")
-    
+
     # Test turning off
     await climate.async_set_hvac_mode(HVACMode.OFF)
     mock_coordinator.api.set_system_mode.assert_called_once_with("12345", is_on=False)
-    
+
     mock_coordinator.api.set_system_mode.reset_mock()
-    
+
     # Test setting to cool
     await climate.async_set_hvac_mode(HVACMode.COOL)
     mock_coordinator.api.set_system_mode.assert_called_once_with("12345", is_on=True, mode="COOL")
@@ -180,9 +180,9 @@ async def test_system_climate_set_temperature(mock_coordinator):
     """Test setting temperature."""
     climate = ActronSystemClimate(mock_coordinator, "12345", "Living Room")
     climate._status["UserAirconSettings"]["Mode"] = "COOL"
-    
+
     await climate.async_set_temperature(temperature=23.0)
-    
+
     mock_coordinator.api.set_temperature.assert_called_once_with(
         "12345", mode="COOL", temperature=23.0
     )
@@ -192,7 +192,7 @@ async def test_system_climate_set_temperature(mock_coordinator):
 def test_zone_climate_init(mock_coordinator):
     """Test zone climate entity initialization."""
     climate = ActronZoneClimate(mock_coordinator, "12345", "Zone 1", 0)
-    
+
     assert climate._serial_number == "12345"
     assert climate._zone_number == 0
     assert climate.temperature_unit == UnitOfTemperature.CELSIUS
@@ -214,7 +214,7 @@ def test_zone_climate_init(mock_coordinator):
 def test_zone_climate_properties(mock_coordinator):
     """Test zone climate entity properties."""
     climate = ActronZoneClimate(mock_coordinator, "12345", "Zone 1", 0)
-    
+
     assert climate.hvac_mode == HVACMode.COOL  # Zone 0 is enabled
     assert climate.hvac_modes == [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO]
     assert climate.current_humidity == 48
@@ -222,7 +222,7 @@ def test_zone_climate_properties(mock_coordinator):
     assert climate.target_temperature == 22.5
     assert climate.min_temp == 20.0  # System setpoint (22) - variance (2)
     assert climate.max_temp == 24.0  # System setpoint (22) + variance (2)
-    
+
     # Test for disabled zone
     climate2 = ActronZoneClimate(mock_coordinator, "12345", "Zone 2", 1)
     assert climate2.hvac_mode == HVACMode.OFF  # Zone 1 is disabled
@@ -231,15 +231,15 @@ def test_zone_climate_properties(mock_coordinator):
 async def test_zone_climate_set_hvac_mode(mock_coordinator):
     """Test setting HVAC mode for a zone."""
     climate = ActronZoneClimate(mock_coordinator, "12345", "Zone 1", 0)
-    
+
     # Test turning off
     await climate.async_set_hvac_mode(HVACMode.OFF)
     mock_coordinator.api.set_zone.assert_called_once_with(
         serial_number="12345", zone_number=0, is_enabled=False
     )
-    
+
     mock_coordinator.api.set_zone.reset_mock()
-    
+
     # Test turning on
     await climate.async_set_hvac_mode(HVACMode.COOL)
     mock_coordinator.api.set_zone.assert_called_once_with(
@@ -250,9 +250,9 @@ async def test_zone_climate_set_hvac_mode(mock_coordinator):
 async def test_zone_climate_set_temperature(mock_coordinator):
     """Test setting temperature for a zone."""
     climate = ActronZoneClimate(mock_coordinator, "12345", "Zone 1", 0)
-    
+
     await climate.async_set_temperature(temperature=23.0)
-    
+
     mock_coordinator.api.set_temperature.assert_called_once_with(
         serial_number="12345", mode="COOL", temperature=23.0, zone=0
     )

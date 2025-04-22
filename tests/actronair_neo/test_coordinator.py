@@ -35,7 +35,7 @@ async def test_coordinator_init(hass: HomeAssistant, mock_actron_api):
     entry.entry_id = "test_entry_id"
 
     coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
-    
+
     assert coordinator.name == "Actron Neo Status"
     assert coordinator.update_interval == SCAN_INTERVAL
     assert coordinator.api.pairing_token == "test_pairing_token"
@@ -50,7 +50,7 @@ async def test_coordinator_setup(hass: HomeAssistant, mock_actron_api):
 
     coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
     await coordinator._async_setup()
-    
+
     # Verify the token was refreshed during setup
     mock_actron_api.refresh_token.assert_called_once()
 
@@ -62,10 +62,10 @@ async def test_coordinator_update_success(hass: HomeAssistant, mock_actron_api):
 
     coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
     result = await coordinator._async_update_data()
-    
+
     # Verify the update_status was called
     mock_actron_api.update_status.assert_called_once()
-    
+
     # Verify the returned data
     assert result == {"12345": {"system_data": "test"}}
     assert coordinator.last_update_success is True
@@ -79,10 +79,10 @@ async def test_coordinator_update_auth_error(hass: HomeAssistant, mock_actron_ap
     entry.entry_id = "test_entry_id"
 
     coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
-    
+
     with pytest.raises(UpdateFailed, match="Authentication error"):
         await coordinator._async_update_data()
-    
+
     assert coordinator.last_update_success is False
 
 
@@ -94,8 +94,8 @@ async def test_coordinator_update_api_error(hass: HomeAssistant, mock_actron_api
     entry.entry_id = "test_entry_id"
 
     coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
-    
+
     with pytest.raises(UpdateFailed, match="Error communicating with API: API Error"):
         await coordinator._async_update_data()
-    
+
     assert coordinator.last_update_success is False
