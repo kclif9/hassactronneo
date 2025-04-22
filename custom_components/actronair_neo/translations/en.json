@@ -129,67 +129,11 @@
     "timeout": "Connection timeout: The request timed out. Try again later.",
     "api_error": "API error: The Actron Air Neo API returned an error."
   },
-  "icons": {
-    "sensor": {
-      "clean_filter": {
-        "state": {
-          "default": "mdi:air-filter"
-        }
-      },
-      "defrost_mode": {
-        "state": {
-          "default": "mdi:snowflake-melt"
-        }
-      },
-      "compressor_mode": {
-        "state": {
-          "default": "mdi:compressor"
-        }
-      },
-      "system_on": {
-        "state": {
-          "on": "mdi:power",
-          "off": "mdi:power-off"
-        }
-      },
-      "position": {
-        "state": {
-          "default": "mdi:adjust"
-        }
-      }
-    },
-    "switch": {
-      "away_mode": {
-        "state": {
-          "on": "mdi:home-export-outline",
-          "off": "mdi:home-outline"
-        }
-      },
-      "continuous_fan": {
-        "state": {
-          "on": "mdi:fan",
-          "off": "mdi:fan-off"
-        }
-      },
-      "quiet_mode": {
-        "state": {
-          "on": "mdi:volume-low",
-          "off": "mdi:volume-high"
-        }
-      },
-      "turbo_mode": {
-        "state": {
-          "on": "mdi:speedometer",
-          "off": "mdi:speedometer-slow"
-        }
-      }
-    }
-  },
   "issues": {
     "stale_auth": {
       "title": "Actron Air Neo authentication expired",
       "description": "The authentication for your {name} Actron Air Neo account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air Neo account."
-    }
+        }
   },
   "repairs": {
     "confirm": {
