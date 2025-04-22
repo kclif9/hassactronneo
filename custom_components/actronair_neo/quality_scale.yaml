@@ -41,7 +41,7 @@ rules:
 
   # Gold
   devices: done
-  diagnostics: todo
+  diagnostics: done
   discovery-update-info:
     status: exempt
     comment: This integration uses DHCP discovery, however is cloud polling. Therefore there is no information to update.
@@ -57,12 +57,12 @@ rules:
   entity-category: done
   entity-device-class: done
   entity-disabled-by-default: done
-  entity-translations: todo
-  exception-translations: todo
+  entity-translations: done
+  exception-translations: done
   icon-translations: todo
-  reconfiguration-flow: todo
+  reconfiguration-flow: done
   repair-issues: todo
-  stale-devices: todo
+  stale-devices: done
 
   # Platinum
   async-dependency: done
