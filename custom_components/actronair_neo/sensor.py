@@ -2,7 +2,7 @@
 
 import logging
 
-from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature, EntityCategory
 from homeassistant.core import HomeAssistant
@@ -33,24 +33,28 @@ async def async_setup_entry(
     """Set up Actron Air Neo sensors."""
     coordinator = entry.runtime_data
 
-    # Sensor configurations with appropriate entity categories
-    # Format: translation_key, path, key, device_class, unit, entity_category
+    # Sensor configurations with appropriate entity categories, device classes, and enabled_default
+    # Format: translation_key, path, key, device_class, unit, entity_category, state_class, enabled_default
     sensor_configs = [
         (
             "clean_filter",
             ["Alerts"],
             "CleanFilter",
-            None,
+            SensorDeviceClass.ENUM,
             None,
             DIAGNOSTIC_CATEGORY,
+            SensorStateClass.MEASUREMENT,
+            True,
         ),
         (
             "defrost_mode",
             ["Alerts"],
             "Defrosting",
-            None,
+            SensorDeviceClass.ENUM,
             None,
             DIAGNOSTIC_CATEGORY,
+            SensorStateClass.MEASUREMENT,
+            False,
         ),
         (
             "compressor_chasing_temperature",
@@ -59,6 +63,8 @@ async def async_setup_entry(
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
             DIAGNOSTIC_CATEGORY,
+            SensorStateClass.MEASUREMENT,
+            False,
         ),
         (
             "compressor_live_temperature",
@@ -67,22 +73,28 @@ async def async_setup_entry(
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
             DIAGNOSTIC_CATEGORY,
+            SensorStateClass.MEASUREMENT,
+            False,
         ),
         (
             "compressor_mode",
             ["LiveAircon"],
             "CompressorMode",
-            None,
+            SensorDeviceClass.ENUM,
             None,
             DIAGNOSTIC_CATEGORY,
+            None,
+            False,
         ),
         (
             "system_on",
             ["UserAirconSettings"],
             "isOn",
+            SensorDeviceClass.ENUM,
             None,
             None,
             None,
+            True,
         ),
         (
             "compressor_speed",
@@ -91,6 +103,8 @@ async def async_setup_entry(
             SensorDeviceClass.SPEED,
             None,
             DIAGNOSTIC_CATEGORY,
+            SensorStateClass.MEASUREMENT,
+            False,
         ),
         (
             "compressor_power",
@@ -99,6 +113,8 @@ async def async_setup_entry(
             SensorDeviceClass.POWER,
             UnitOfPower.WATT,
             DIAGNOSTIC_CATEGORY,
+            SensorStateClass.MEASUREMENT,
+            False,
         ),
         (
             "outdoor_temperature",
@@ -107,6 +123,8 @@ async def async_setup_entry(
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
             None,
+            SensorStateClass.MEASUREMENT,
+            True,
         ),
         (
             "humidity",
@@ -115,6 +133,8 @@ async def async_setup_entry(
             SensorDeviceClass.HUMIDITY,
             PERCENTAGE,
             None,
+            SensorStateClass.MEASUREMENT,
+            True,
         ),
     ]
 
@@ -123,7 +143,7 @@ async def async_setup_entry(
     for system in coordinator.api.systems:
         serial_number = system["serial"]
 
-        # Create sensors with appropriate categories
+        # Create sensors with appropriate categories and device classes
         for (
             translation_key,
             path,
@@ -131,20 +151,25 @@ async def async_setup_entry(
             device_class,
             unit,
             entity_category,
+            state_class,
+            enabled_default,
         ) in sensor_configs:
-            entities.append(
-                EntitySensor(
-                    coordinator,
-                    serial_number,
-                    translation_key,
-                    path,
-                    key,
-                    device_class,
-                    unit,
-                    is_diagnostic=False,
-                    entity_category=entity_category,
-                )
+            sensor = EntitySensor(
+                coordinator,
+                serial_number,
+                translation_key,
+                path,
+                key,
+                device_class,
+                unit,
+                is_diagnostic=False,
+                entity_category=entity_category,
+                enabled_default=enabled_default,
             )
+            # Set state class if provided
+            if state_class:
+                sensor._attr_state_class = state_class
+            entities.append(sensor)
 
         # Fetch Zones
         zones = coordinator.data[serial_number].get("RemoteZoneInfo", [])

@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch import SwitchEntity, SwitchDeviceClass
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -47,6 +47,8 @@ class AwayModeSwitch(CoordinatorEntity, SwitchEntity):
     _attr_has_entity_name = True
     _attr_translation_key = "away_mode"
     _attr_entity_category = CONFIG_CATEGORY
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_entity_registry_enabled_default = True
 
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
@@ -95,7 +97,8 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "continuous_fan"
-    _attr_entity_category = CONFIG_CATEGORY
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_entity_registry_enabled_default = True
 
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the continuous fan switch."""
@@ -157,7 +160,8 @@ class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "quiet_mode"
-    _attr_entity_category = CONFIG_CATEGORY
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_entity_registry_enabled_default = True
 
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the quiet mode switch."""
@@ -212,7 +216,8 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "turbo_mode"
-    _attr_entity_category = CONFIG_CATEGORY
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_entity_registry_enabled_default = True
 
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the turbo mode switch."""

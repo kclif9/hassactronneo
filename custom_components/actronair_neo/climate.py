@@ -8,6 +8,7 @@ from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
     HVACMode,
+    ClimateEntityDescription,
 )
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -82,6 +83,8 @@ class ActronSystemClimate(
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TURN_OFF
     )
+    # Main system is always enabled by default
+    _attr_entity_registry_enabled_default = True
 
     def __init__(
         self,
@@ -230,6 +233,7 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TURN_OFF
     )
+    _attr_entity_registry_enabled_default = True
 
     def __init__(
         self,
@@ -244,10 +248,10 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
         self._serial_number: str = serial_number
         self._ac_status = coordinator.data[serial_number]
         self._name: str = zone_name
-        self._zone_number = zone_number
+        self._zone_number: int = zone_number
         self._attr_name: None = None
-        self._attr_unique_id = f"{self._serial_number}_zone_{self._zone_number}"
-        self._attr_device_info = DeviceInfo(
+        self._attr_unique_id: str = f"{self._serial_number}_zone_{self._zone_number}"
+        self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._attr_unique_id)},
             name=self._name,
             manufacturer="Actron Air",
