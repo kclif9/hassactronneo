@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 import logging
 from typing import Any
 
-from actron_neo_api import ActronNeoAPI, ActronNeoAPIError, ActronNeoAuthError
+from actron_neo_api import ActronNeoAPI, ActronNeoAPIError, ActronNeoAuthError, ActronAirNeoStatus
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -40,11 +40,13 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_seen = {}
         self.auth_error_count = 0
         self.hass = hass
+        self.systems = []
 
     async def _async_setup(self) -> None:
         """Perform initial setup, including refreshing the token."""
         try:
             await self.api.refresh_token()
+            self.systems = await self.api.get_ac_systems()
             self.auth_error_count = 0
         except ActronNeoAuthError:
             _LOGGER.error("Authentication error while setting up Actron Neo integration")
@@ -61,12 +63,15 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.last_update_success = True
             self.auth_error_count = 0
 
-            # Update last_seen timestamps for active systems
+            status_data = {}
             current_time = dt_util.utcnow()
-            for system_id in self.api.status:
-                self.last_seen[system_id] = current_time
 
-            return self.api.status
+            for system in self.systems:
+                serial = system.get("serial")
+                self.last_seen[serial] = current_time
+                status = self.api.state_manager.get_status(serial)
+                status_data[serial] = status.to_dict() if hasattr(status, 'to_dict') else vars(status)
+            return status_data
         except ActronNeoAuthError:
             self.last_update_success = False
             self.auth_error_count += 1
@@ -75,10 +80,8 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "Device may be unavailable"
             )
 
-            # After multiple consecutive auth errors, register a repair issue
             if self.auth_error_count >= AUTH_ERROR_THRESHOLD:
                 await async_register_stale_auth_issue(self.hass, self.entry)
-
             raise UpdateFailed("Authentication error")
         except ActronNeoAPIError as err:
             self.last_update_success = False
@@ -95,6 +98,8 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         last_seen_time = self.last_seen[system_id]
         current_time = dt_util.utcnow()
-
-        # Check if device hasn't been seen for longer than the stale timeout
         return (current_time - last_seen_time) > STALE_DEVICE_TIMEOUT
+
+    def get_status(self, serial_number: str) -> ActronAirNeoStatus:
+        """Get the original status object for a system."""
+        return self.api.state_manager.get_status(serial_number)
