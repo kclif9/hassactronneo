@@ -58,6 +58,11 @@
     }
   },
   "entity": {
+    "cover": {
+      "zone_position": {
+        "name": "Zone Position"
+      }
+    },
     "climate": {
       "ac_unit": {
         "name": "AC Unit {serial_number}"

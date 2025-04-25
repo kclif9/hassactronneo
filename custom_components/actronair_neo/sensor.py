@@ -32,12 +32,11 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
 
     # Sensor configurations with appropriate entity categories, device classes, and enabled_default
-    # Format: translation_key, path, key, device_class, unit, entity_category, state_class, enabled_default
+    # Format: translation_key, sensor_name, device_class, unit, entity_category, state_class, enabled_default
     sensor_configs = [
         (
             "clean_filter",
-            ["Alerts"],
-            "CleanFilter",
+            "clean_filter",
             SensorDeviceClass.ENUM,
             None,
             DIAGNOSTIC_CATEGORY,
@@ -46,8 +45,7 @@ async def async_setup_entry(
         ),
         (
             "defrost_mode",
-            ["Alerts"],
-            "Defrosting",
+            "defrost_mode",
             SensorDeviceClass.ENUM,
             None,
             DIAGNOSTIC_CATEGORY,
@@ -56,8 +54,7 @@ async def async_setup_entry(
         ),
         (
             "compressor_chasing_temperature",
-            ["LiveAircon"],
-            "CompressorChasingTemperature",
+            "compressor_chasing_temperature",
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
             DIAGNOSTIC_CATEGORY,
@@ -66,8 +63,7 @@ async def async_setup_entry(
         ),
         (
             "compressor_live_temperature",
-            ["LiveAircon"],
-            "CompressorLiveTemperature",
+            "compressor_live_temperature",
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
             DIAGNOSTIC_CATEGORY,
@@ -76,8 +72,7 @@ async def async_setup_entry(
         ),
         (
             "compressor_mode",
-            ["LiveAircon"],
-            "CompressorMode",
+            "compressor_mode",
             SensorDeviceClass.ENUM,
             None,
             DIAGNOSTIC_CATEGORY,
@@ -86,8 +81,7 @@ async def async_setup_entry(
         ),
         (
             "system_on",
-            ["UserAirconSettings"],
-            "isOn",
+            "system_on",
             SensorDeviceClass.ENUM,
             None,
             None,
@@ -96,8 +90,7 @@ async def async_setup_entry(
         ),
         (
             "compressor_speed",
-            ["LiveAircon", "OutdoorUnit"],
-            "CompSpeed",
+            "compressor_speed",
             SensorDeviceClass.SPEED,
             None,
             DIAGNOSTIC_CATEGORY,
@@ -106,8 +99,7 @@ async def async_setup_entry(
         ),
         (
             "compressor_power",
-            ["LiveAircon", "OutdoorUnit"],
-            "CompPower",
+            "compressor_power",
             SensorDeviceClass.POWER,
             UnitOfPower.WATT,
             DIAGNOSTIC_CATEGORY,
@@ -116,8 +108,7 @@ async def async_setup_entry(
         ),
         (
             "outdoor_temperature",
-            ["MasterInfo"],
-            "LiveOutdoorTemp_oC",
+            "outdoor_temperature",
             SensorDeviceClass.TEMPERATURE,
             UnitOfTemperature.CELSIUS,
             None,
@@ -126,8 +117,7 @@ async def async_setup_entry(
         ),
         (
             "humidity",
-            ["MasterInfo"],
-            "LiveHumidity_pc",
+            "humidity",
             SensorDeviceClass.HUMIDITY,
             PERCENTAGE,
             None,
@@ -140,12 +130,11 @@ async def async_setup_entry(
 
     for system in coordinator.api.systems:
         serial_number = system["serial"]
+        status = coordinator.api.state_manager.get_status(serial_number)
 
-        # Create sensors with appropriate categories and device classes
         for (
             translation_key,
-            path,
-            key,
+            sensor_name,
             device_class,
             unit,
             entity_category,
@@ -153,45 +142,28 @@ async def async_setup_entry(
             enabled_default,
         ) in sensor_configs:
             sensor = EntitySensor(
-                coordinator,
-                serial_number,
-                translation_key,
-                path,
-                key,
-                device_class,
-                unit,
-                is_diagnostic=False,
-                entity_category=entity_category,
-                enabled_default=enabled_default,
+                coordinator = coordinator,
+                status = status,
+                translation_key = translation_key,
+                sensor_name = sensor_name,
+                device_class = device_class,
+                unit_of_measurement = unit,
+                is_diagnostic = False,
+                entity_category = entity_category,
+                state_class = state_class,
+                enabled_default = enabled_default,
             )
-            # Set state class if provided
-            if state_class:
-                sensor._attr_state_class = state_class
             entities.append(sensor)
 
-        # Fetch Zones
-        zones = coordinator.data[serial_number].get("RemoteZoneInfo", [])
+        for zone in status.remote_zone_info:
+            if zone.exists:
+                entities.append(ZoneTemperatureSensor(coordinator, serial_number, zone))
+                entities.append(ZoneHumiditySensor(coordinator, serial_number, zone))
 
-        # Create zones & sensors
-        zone_map = {zone_number: zone for zone_number, zone in enumerate(zones, start=0)}
-        for zone_number, zone in zone_map.items():
-            if zone["NV_Exists"]:
-                zone_name = zone["NV_Title"]
-                entities.append(ZonePositionSensor(coordinator, serial_number, zone, zone_number))
-                entities.append(ZoneTemperatureSensor(coordinator, serial_number, zone, zone_number))
-                entities.append(ZoneHumiditySensor(coordinator, serial_number, zone, zone_number))
-
-        # Fetch Peripherals
-        peripherals = coordinator.data[serial_number].get("AirconSystem", {}).get("Peripherals", [])
-
-        for peripheral in peripherals:
-            logical_address = peripheral["LogicalAddress"]
-            zone_number = peripheral.get("ZoneAssignment")[0] - 1
-            zone = zone_map.get(zone_number)
-
-            entities.append(PeripheralBatterySensor(coordinator, serial_number, zone, peripheral))
-            entities.append(PeripheralTemperatureSensor(coordinator, serial_number, zone, peripheral))
-            entities.append(PeripheralHumiditySensor(coordinator, serial_number, zone, peripheral))
+        for peripheral in status.peripherals:
+            entities.append(PeripheralBatterySensor(coordinator, peripheral))
+            entities.append(PeripheralTemperatureSensor(coordinator, peripheral))
+            entities.append(PeripheralHumiditySensor(coordinator, peripheral))
 
         # Add all sensors
         async_add_entities(entities)
