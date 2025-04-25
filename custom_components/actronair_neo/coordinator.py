@@ -1,161 +1,105 @@
 """Coordinator for Actron Air Neo integration."""
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 import logging
-import re
+from typing import Any
 
-import aiohttp
+from actron_neo_api import ActronNeoAPI, ActronNeoAPIError, ActronNeoAuthError, ActronAirNeoStatus
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
-_LOGGER = logging.getLogger(__name__)
+from .const import _LOGGER, STALE_DEVICE_TIMEOUT
+from .repairs import async_register_stale_auth_issue
+
+type ActronConfigEntry = ConfigEntry[ActronNeoDataUpdateCoordinator]
+
+SCAN_INTERVAL = timedelta(seconds=30)
+PARALLEL_UPDATES = 0
+AUTH_ERROR_THRESHOLD = 3
 
 
-class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator):
+class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Custom coordinator for Actron Air Neo integration."""
 
-    def __init__(self, hass: HomeAssistant, api, serial_number) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry: ActronConfigEntry, pairing_token: str
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="Actron Neo Status",
-            update_interval=timedelta(seconds=30),
+            update_interval=SCAN_INTERVAL,
         )
-        self.api = api
-        self.serial_number = serial_number
-        self.local_state = {"full_update": None, "last_event_id": None}
+        self.api = ActronNeoAPI(pairing_token=pairing_token)
+        self.entry = entry
+        self.last_update_success = False
+        self.last_seen = {}
+        self.auth_error_count = 0
+        self.hass = hass
+        self.systems = []
 
-    async def _async_update_data(self) -> dict:
+    async def _async_setup(self) -> None:
+        """Perform initial setup, including refreshing the token."""
+        try:
+            await self.api.refresh_token()
+            self.systems = await self.api.get_ac_systems()
+            self.auth_error_count = 0
+        except ActronNeoAuthError:
+            _LOGGER.error("Authentication error while setting up Actron Neo integration")
+            await async_register_stale_auth_issue(self.hass, self.entry)
+            raise
+        except ActronNeoAPIError as err:
+            _LOGGER.error("API error while setting up Actron Neo integration: %s", err)
+            raise
+
+    async def _async_update_data(self) -> dict[str, Any]:
         """Fetch updates and merge incremental changes into the full state."""
-        if self.local_state["full_update"] is None:
-            return await self._fetch_full_update()
-
-        return await self._fetch_incremental_updates()
-
-    async def _fetch_full_update(self):
-        """Fetch the full update."""
-        _LOGGER.debug("Fetching full-status-broadcast")
         try:
-            events = await self.api.get_ac_events(
-                self.serial_number, event_type="latest"
+            await self.api.update_status()
+            self.last_update_success = True
+            self.auth_error_count = 0
+
+            status_data = {}
+            current_time = dt_util.utcnow()
+
+            for system in self.systems:
+                serial = system.get("serial")
+                self.last_seen[serial] = current_time
+                status = self.api.state_manager.get_status(serial)
+                status_data[serial] = status.to_dict() if hasattr(status, 'to_dict') else vars(status)
+            return status_data
+        except ActronNeoAuthError:
+            self.last_update_success = False
+            self.auth_error_count += 1
+            _LOGGER.warning(
+                "Authentication error while updating Actron Neo data. "
+                "Device may be unavailable"
             )
-            if events is None:
-                _LOGGER.error(
-                    "Failed to fetch events: get_ac_events returned None")
-                return self.local_state["full_update"]
-        except (TimeoutError, aiohttp.ClientError) as e:
-            _LOGGER.error("Error fetching full update: %s", e)
-            return self.local_state["full_update"]
 
-        for event in events["events"]:
-            event_data = event["data"]
-            event_id = event["id"]
-            event_type = event["type"]
-
-            if event_type == "full-status-broadcast":
-                _LOGGER.debug(
-                    "Received full-status-broadcast, updating full state")
-                self.local_state["full_update"] = event_data
-                self.local_state["last_event_id"] = event_id
-                if self.local_state["full_update"] is not None:
-                    self.async_set_updated_data(
-                        self.local_state["full_update"])
-                return self.local_state["full_update"]
-
-        return self.local_state["full_update"]
-
-    async def _fetch_incremental_updates(self):
-        """Fetch incremental updates since the last event."""
-        _LOGGER.debug("Fetching incremental updates")
-        try:
-            events = await self.api.get_ac_events(
-                self.serial_number,
-                event_type="newer",
-                event_id=self.local_state["last_event_id"],
+            if self.auth_error_count >= AUTH_ERROR_THRESHOLD:
+                await async_register_stale_auth_issue(self.hass, self.entry)
+            raise UpdateFailed("Authentication error")
+        except ActronNeoAPIError as err:
+            self.last_update_success = False
+            _LOGGER.warning(
+                "Error communicating with Actron Neo API: %s. "
+                "Device may be unavailable", err
             )
-            if events is None:
-                _LOGGER.error(
-                    "Failed to fetch events: get_ac_events returned None")
-                return self.local_state["full_update"]
-        except (TimeoutError, aiohttp.ClientError) as e:
-            _LOGGER.error("Error fetching incremental updates: %s", e)
-            return self.local_state["full_update"]
+            raise UpdateFailed(f"Error communicating with API: {err}")
 
-        for event in reversed(events["events"]):
-            event_data = event["data"]
-            event_id = event["id"]
-            event_type = event["type"]
+    def is_device_stale(self, system_id: str) -> bool:
+        """Check if a device is stale (not seen for a while)."""
+        if system_id not in self.last_seen:
+            return True
 
-            if event_type == "full-status-broadcast":
-                _LOGGER.debug(
-                    "Received full-status-broadcast, updating full state")
-                self.local_state["full_update"] = event_data
-                self.local_state["last_event_id"] = event_id
-                if self.local_state["full_update"] is not None:
-                    self.async_set_updated_data(
-                        self.local_state["full_update"])
-                return self.local_state["full_update"]
+        last_seen_time = self.last_seen[system_id]
+        current_time = dt_util.utcnow()
+        return (current_time - last_seen_time) > STALE_DEVICE_TIMEOUT
 
-            if event_type == "status-change-broadcast":
-                _LOGGER.debug(
-                    "Merging status-change-broadcast into full state")
-                self._merge_incremental_update(
-                    self.local_state["full_update"], event["data"]
-                )
-
-            self.local_state["last_event_id"] = event_id
-
-        if self.local_state["full_update"] is not None:
-            self.async_set_updated_data(self.local_state["full_update"])
-            _LOGGER.debug("Coordinator data updated with the latest state")
-        return self.local_state["full_update"]
-
-    def _merge_incremental_update(self, full_state, incremental_data):
-        """Merge incremental updates into the full state."""
-        for key, value in incremental_data.items():
-            if key.startswith("@"):
-                continue
-
-            keys = key.split(".")
-            current = full_state
-
-            for part in keys[:-1]:
-                match = re.match(r"(.+)\[(\d+)\]$", part)
-                if match:
-                    array_key, index = match.groups()
-                    index = int(index)
-
-                    if array_key not in current:
-                        current[array_key] = []
-
-                    while len(current[array_key]) <= index:
-                        current[array_key].append({})
-
-                    current = current[array_key][index]
-                else:
-                    if part not in current:
-                        current[part] = {}
-                    current = current[part]
-
-            final_key = keys[-1]
-            match = re.match(r"(.+)\[(\d+)\]$", final_key)
-            if match:
-                array_key, index = match.groups()
-                index = int(index)
-
-                if array_key not in current:
-                    current[array_key] = []
-
-                while len(current[array_key]) <= index:
-                    current[array_key].append({})
-
-                if isinstance(current[array_key][index], dict) and isinstance(
-                    value, dict
-                ):
-                    current[array_key][index].update(value)
-                else:
-                    current[array_key][index] = value
-            else:
-                current[final_key] = value
+    def get_status(self, serial_number: str) -> ActronAirNeoStatus:
+        """Get the original status object for a system."""
+        return self.api.state_manager.get_status(serial_number)

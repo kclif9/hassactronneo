@@ -1,53 +1,33 @@
 {
-  "title": "Actron Air Neo",
   "config": {
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
+      "reconfiguration_successful": "Reconfiguration was successful."
+    },
+    "error": {
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "api_error": "An error occurred while connecting to Actron Air Neo. Please try again later.",
+      "no_systems_found": "No systems found in your account. Please check your account and try again.",
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
     "step": {
       "user": {
-        "title": "Set up Actron Air Neo",
-        "description": "Enter your Actron Air Neo account credentials to connect.",
         "data": {
-          "username": "Username",
-          "password": "Password"
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
         },
         "data_description": {
           "username": "Your account username",
           "password": "Your account password"
-        }
+        },
+        "description": "Enter your Actron Air Neo account credentials to connect.",
+        "title": "Set up Actron Air Neo"
       },
       "reauth_confirm": {
-        "title": "Reauthenticate with Actron Air Neo",
-        "description": "Your authentication for account {account} has expired. Please re-enter your credentials to continue."
-      }
-    },
-    "error": {
-      "invalid_auth": "Invalid username or password. Please check your credentials and try again.",
-      "api_error": "An error occurred while connecting to Actron Air Neo. Please try again later.",
-      "no_systems_found": "No systems found in your account. Please check your account and try again.",
-      "cannot_connect": "Failed to connect to Actron Air Neo. Please check your internet connection and try again.",
-      "unknown": "An unexpected error occurred. Please try again later."
-    },
-    "abort": {
-      "already_configured": "This Actron Air Neo account is already configured.",
-      "reauth_successful": "Re-authentication was successful.",
-      "reconfiguration_successful": "Reconfiguration was successful."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Actron Air Neo Options",
-        "description": "Configure options for the Actron Air Neo integration.",
-        "data": {
-          "reconfigure": "Reconfigure account credentials"
-        }
-      },
-      "reconfigure": {
-        "title": "Reconfigure Actron Air Neo Account",
-        "description": "Update your Actron Air Neo account credentials.",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        }
+        "description": "Your authentication for account {account} has expired. Please re-enter your credentials to continue.",
+        "title": "Reauthenticate with Actron Air Neo"
       }
     }
   },
@@ -57,12 +37,26 @@
       "turn_off": "Turn off Actron Air Neo device"
     }
   },
-  "entity": {
-    "cover": {
-      "zone_position": {
-        "name": "Zone Position"
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "reconfigure": "Reconfigure account credentials"
+        },
+        "description": "Configure options for the Actron Air Neo integration.",
+        "title": "Actron Air Neo Options"
+      },
+      "reconfigure": {
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        },
+        "description": "Update your Actron Air Neo account credentials.",
+        "title": "Reconfigure Actron Air Neo Account"
       }
-    },
+    }
+  },
+  "entity": {
     "climate": {
       "ac_unit": {
         "name": "AC Unit {serial_number}"
@@ -136,5 +130,6 @@
       "title": "Confirm repair",
       "description": "Do you want to apply this repair?"
     }
-  }
+  },
+  "title": "Actron Air Neo"
 }

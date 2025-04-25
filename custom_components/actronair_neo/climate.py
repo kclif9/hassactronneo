@@ -2,28 +2,24 @@
 
 from typing import Any
 
-from actron_neo_api import ActronNeoAPI
+from actron_neo_api import ActronNeoAPI, ActronAirNeoZone, ActronAirNeoStatus
 
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
     HVACMode,
+    ClimateEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import ActronConfigEntry
 from .const import DOMAIN
-from .device import ACUnit, ACZone
+from .coordinator import ActronNeoDataUpdateCoordinator
 
-DEFAULT_TEMP_MIN = 16.0
-DEFAULT_TEMP_MAX = 32.0
 FAN_MODE_MAPPING = {
     "auto": "AUTO",
     "low": "LOW",
@@ -39,101 +35,86 @@ HVAC_MODE_MAPPING = {
     "OFF": HVACMode.OFF,
 }
 HVAC_MODE_MAPPING_REVERSE = {v: k for k, v in HVAC_MODE_MAPPING.items()}
-AC_UNIT_SUPPORTED_FEATURES = (
-    ClimateEntityFeature.TARGET_TEMPERATURE
-    | ClimateEntityFeature.FAN_MODE
-    | ClimateEntityFeature.TURN_ON
-    | ClimateEntityFeature.TURN_OFF
-)
-AC_ZONE_SUPPORTED_FEATURES = (
-    ClimateEntityFeature.TARGET_TEMPERATURE
-    | ClimateEntityFeature.TURN_ON
-    | ClimateEntityFeature.TURN_OFF
-)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: ActronConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Actron Air Neo climate entities."""
     # Get the API and coordinator from the integration
-    instance = config_entry.runtime_data
-    api = instance.api
-    coordinator = instance.coordinator
-    serial_number = instance.serial_number
-    ac_unit = instance.ac_unit
-
-    # Fetch the status and create ZoneSwitches
-    status = coordinator.data
-    zones = status.get("RemoteZoneInfo", [])
-    entities: list[ClimateEntity] = []
+    coordinator = entry.runtime_data
 
     # Add system-wide climate entity
-    entities.append(ActronSystemClimate(
-        coordinator, api, ac_unit, serial_number))
+    entities: list[ClimateEntity] = []
 
-    for zone_number, zone in enumerate(zones, start=1):
-        if zone["NV_Exists"]:
-            zone_name = zone["NV_Title"]
-            ac_zone = ACZone(ac_unit, zone_number, zone_name)
-            entities.append(ActronZoneClimate(
-                coordinator, api, ac_zone, serial_number))
+    for system in coordinator.systems:
+        name = system["description"]
+        serial_number = system["serial"]
+        entities.append(ActronSystemClimate(coordinator, serial_number, name))
 
-    # Add all switches
+        # Get status data from the coordinator
+        status = coordinator.api.state_manager.get_status(serial_number)
+
+        for zone in status.remote_zone_info:
+            if zone.exists:
+                entities.append(
+                    ActronZoneClimate(
+                        coordinator, serial_number, zone
+                    )
+                )
+
     async_add_entities(entities)
 
 
-class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
+class ActronSystemClimate(
+    CoordinatorEntity[ActronNeoDataUpdateCoordinator], ClimateEntity
+):
     """Representation of the Actron Air Neo system."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "ac_unit"
     _attr_fan_modes = ["auto", "low", "medium", "high"]
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_supported_features = (
+        ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.FAN_MODE
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.TURN_OFF
+    )
+    _attr_entity_registry_enabled_default = True
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator,
-        api: ActronNeoAPI,
-        ac_unit: ACUnit,
+        coordinator: ActronNeoDataUpdateCoordinator,
         serial_number: str,
+        name: str,
     ) -> None:
         """Initialize an Actron Air Neo unit."""
         super().__init__(coordinator)
-        self._coordinator = coordinator
-        self._api = api
-        self._serial_number = serial_number
-        self._ac_unit = ac_unit
-        self._attr_translation_placeholders = {
-            "serial_number": self._serial_number}
-        self._attr_name = f"AC Unit {self._serial_number}"
-        self._attr_unique_id = f"{DOMAIN}_{self._serial_number}_climate"
-
-    @property
-    def _status(self):
-        """Shortcut to coordinator data."""
-        return self._coordinator.data
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device information."""
-        return self._ac_unit.device_info
+        self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
+        self._serial_number: str = self._status.ac_system.master_serial
+        self._name: str = name
+        self._attr_name: None = None
+        self._attr_unique_id: str = self._serial_number
+        self._attr_device_info: DeviceInfo = DeviceInfo(
+            identifiers={(DOMAIN, self._serial_number)},
+            name=self._status.ac_system.system_name,
+            manufacturer="Actron Air",
+            model=self._status.ac_system.master_wc_model,
+            sw_version=self._status.ac_system.master_wc_firmware_version,
+            serial_number=self._serial_number,
+        )
 
     @property
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
-        system_state = self._status.get("UserAirconSettings", {}).get("isOn")
+        system_state = self._status.user_aircon_settings.is_on
         if not system_state:
             return HVACMode.OFF
 
-        hvac_mode = self._status.get("UserAirconSettings", {}).get("Mode")
-        return HVAC_MODE_MAPPING.get(hvac_mode, HVACMode.OFF)
+        mode = self._status.user_aircon_settings.mode
+        return HVAC_MODE_MAPPING.get(mode, HVACMode.OFF)
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -143,186 +124,92 @@ class ActronSystemClimate(CoordinatorEntity, ClimateEntity):
     @property
     def fan_mode(self) -> str:
         """Return the current fan mode."""
-        api_fan_mode = (
-            self._coordinator.data.get(
-                "UserAirconSettings", {}).get("FanMode").upper()
-        )
-        fan_mode_without_cont = api_fan_mode.split("+")[0]
-        return FAN_MODE_MAPPING_REVERSE.get(fan_mode_without_cont, "AUTO")
-
-    @property
-    def fan_modes(self) -> list[str]:
-        """Return the list of available fan modes."""
-        return list(FAN_MODE_MAPPING.keys())
-
-    @property
-    def temperature_unit(self) -> str:
-        """Return the temperature unit."""
-        return UnitOfTemperature.CELSIUS
+        mode = self._status.user_aircon_settings.mode
+        return FAN_MODE_MAPPING_REVERSE.get(mode, "AUTO")
 
     @property
     def current_humidity(self) -> float:
         """Return the current humidity."""
-        return self._status.get("MasterInfo", {}).get("LiveHumidity_pc")
+        return self._status.master_info.live_humidity_pc
 
     @property
     def current_temperature(self) -> float:
         """Return the current temperature."""
-        return self._status.get("MasterInfo", {}).get("LiveTemp_oC")
+        return self._status.master_info.live_temp_c
 
     @property
     def target_temperature(self) -> float:
         """Return the target temperature."""
-        return self._status.get("UserAirconSettings", {}).get(
-            "TemperatureSetpoint_Cool_oC"
-        )
-
-    @property
-    def supported_features(self) -> ClimateEntityFeature:
-        """Return supported features."""
-        return AC_UNIT_SUPPORTED_FEATURES
+        return self._status.user_aircon_settings.temperature_setpoint_cool_c
 
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature that can be set."""
-        return (
-            self._coordinator.data.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Min", DEFAULT_TEMP_MIN)
-        )
+        return self._status.min_temp
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature that can be set."""
-        return (
-            self._coordinator.data.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Max", DEFAULT_TEMP_MAX)
-        )
+        return self._status.max_temp
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a new fan mode."""
         api_fan_mode = FAN_MODE_MAPPING.get(fan_mode.lower())
-        await self._api.set_fan_mode(self._serial_number, fan_mode=api_fan_mode)
-        self._attr_fan_mode = fan_mode
-        self.async_write_ha_state()
+        await self._status.user_aircon_settings.set_fan_mode(api_fan_mode)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the HVAC mode."""
         ac_mode = HVAC_MODE_MAPPING_REVERSE.get(hvac_mode)
-        if not ac_mode:
-            raise ValueError(f"Unsupported HVAC mode: {hvac_mode}")
-
-        if hvac_mode == HVACMode.OFF:
-            await self._api.set_system_mode(self._serial_number, is_on=False)
-        else:
-            await self._api.set_system_mode(
-                self._serial_number, is_on=True, mode=ac_mode
-            )
-
-        self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        await self._status.ac_system.set_system_mode(ac_mode)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set the temperature."""
         temp = kwargs.get("temperature")
-        hvac_mode = self.hvac_mode.lower()
-
-        if hvac_mode == HVACMode.COOL:
-            await self._api.set_temperature(
-                self._serial_number,
-                mode="COOL",
-                temperature=temp,
-            )
-        elif hvac_mode == HVACMode.HEAT:
-            await self._api.set_temperature(
-                self._serial_number,
-                mode="HEAT",
-                temperature=temp,
-            )
-        elif hvac_mode == HVACMode.AUTO:
-            await self._api.set_temperature(
-                self._serial_number,
-                mode="AUTO",
-                temperature={"cool": temp, "heat": temp},
-            )
-        else:
-            raise ValueError(f"Mode {hvac_mode} is invalid.")
-        self._attr_target_temperature = temp
-        self.async_write_ha_state()
+        await self._status.user_aircon_settings.set_temperature(temperature=temp)
 
     async def async_turn_on_continuous(self, continuous: bool) -> None:
         """Set the continuous mode."""
-        await self._api.set_fan_mode(
-            self._serial_number, fan_mode=self._attr_fan_mode, continuous=continuous
-        )
-        self.async_write_ha_state()
+        await self._status.user_aircon_settings.set_continuous_mode(enabled=continuous)
 
 
 class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     """Representation of a zone within the Actron Air system."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "ac_zone"
+    _attr_fan_modes = ["auto", "low", "medium", "high"]
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_supported_features = (
+        ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.TURN_OFF
+    )
+    _attr_entity_registry_enabled_default = True
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator,
-        api: ActronNeoAPI,
-        ac_zone: ACZone,
+        coordinator: ActronNeoDataUpdateCoordinator,
         serial_number: str,
+        zone: ActronAirNeoZone,
     ) -> None:
         """Initialize an Actron Air Neo unit."""
         super().__init__(coordinator)
-        self._coordinator = coordinator
-        self._api = api
-        self._serial_number = serial_number
-        self._ac_zone = ac_zone
-        self._attr_translation_placeholders = {
-            "zone_number": str(self._ac_zone.zone_number)
-        }
-        self._attr_unique_id = "_".join(
-            [
-                DOMAIN,
-                self._serial_number,
-                "zone",
-                str(self._ac_zone.zone_number),
-                "climate",
-            ]
+        self._zone: ActronAirNeoZone = zone
+        self._attr_name: None = None
+        self._attr_unique_id: str = f"{serial_number}_zone_{self._zone.zone_id}"
+        self._attr_device_info: DeviceInfo = DeviceInfo(
+            identifiers={(DOMAIN, self._attr_unique_id)},
+            name=self._zone.title,
+            manufacturer="Actron Air",
+            model="Zone",
+            suggested_area=self._zone.title,
         )
-
-    @property
-    def _status(self):
-        """Shortcut to coordinator data."""
-        return self._coordinator.data
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device information."""
-        return self._ac_zone.device_info
 
     @property
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
-        system_state = self._status.get("UserAirconSettings", {}).get("isOn")
-        if not system_state:
-            return HVACMode.OFF
-
-        status = self.coordinator.data
-        if status:
-            enabled_zones = status.get(
-                "UserAirconSettings", {}).get("EnabledZones", [])
-            if isinstance(enabled_zones, list):
-                zone_state = enabled_zones[self._ac_zone.zone_number - 1]
-                if zone_state:
-                    hvac_mode = self._status.get(
-                        "UserAirconSettings", {}).get("Mode")
-                    return HVAC_MODE_MAPPING.get(hvac_mode, HVACMode.OFF)
+        if self._zone.is_active:
+            mode = self._zone.hvac_mode
+            return HVAC_MODE_MAPPING.get(mode, HVACMode.OFF)
         return HVACMode.OFF
 
     @property
@@ -331,127 +218,35 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
         return [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.AUTO]
 
     @property
-    def temperature_unit(self) -> str:
-        """Return the temperature unit."""
-        return UnitOfTemperature.CELSIUS
-
-    @property
     def current_humidity(self) -> float | None:
         """Return the current humidity."""
-        zones = self.coordinator.data.get("RemoteZoneInfo", [])
-        for zone_number, zone in enumerate(zones, start=1):
-            if zone_number == self._ac_zone.zone_number:
-                return zone.get("LiveHumidity_pc")
-        return None
+        return self._zone.humidity
 
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        zones = self.coordinator.data.get("RemoteZoneInfo", [])
-        for zone_number, zone in enumerate(zones, start=1):
-            if zone_number == self._ac_zone.zone_number:
-                return zone.get("LiveTemp_oC")
-        return None
+        return self._zone.live_temp_c
 
     @property
     def target_temperature(self) -> float | None:
         """Return the target temperature."""
-        zones = self.coordinator.data.get("RemoteZoneInfo", [])
-        for zone_number, zone in enumerate(zones, start=1):
-            if zone_number == self._ac_zone.zone_number:
-                return zone.get("TemperatureSetpoint_Cool_oC")
-        return None
-
-    @property
-    def supported_features(self) -> ClimateEntityFeature:
-        """Return supported features."""
-        return AC_ZONE_SUPPORTED_FEATURES
+        return self._zone.temperature_setpoint_cool_c
 
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature that can be set."""
-        min_setpoint = (
-            self._status.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Min")
-        )
-        target_setpoint = self._status.get("UserAirconSettings", {}).get(
-            "TemperatureSetpoint_Cool_oC"
-        )
-        temp_variance = self._status.get("UserAirconSettings", {}).get(
-            "ZoneTemperatureSetpointVariance_oC"
-        )
-        if min_setpoint > target_setpoint - temp_variance:
-            return min_setpoint
-        return target_setpoint - temp_variance
+        return self._zone.min_temp
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature that can be set."""
-        max_setpoint = (
-            self._status.get("NV_Limits", {})
-            .get("UserSetpoint_oC", {})
-            .get("setCool_Max")
-        )
-        target_setpoint = self._status.get("UserAirconSettings", {}).get(
-            "TemperatureSetpoint_Cool_oC"
-        )
-        temp_variance = self._status.get("UserAirconSettings", {}).get(
-            "ZoneTemperatureSetpointVariance_oC"
-        )
-        if max_setpoint < target_setpoint + temp_variance:
-            return max_setpoint
-        return target_setpoint + temp_variance
+        return self._zone.max_temp
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the HVAC mode."""
-        if hvac_mode == HVACMode.OFF:
-            await self._api.set_zone(
-                serial_number=self._serial_number,
-                zone_number=self._ac_zone.zone_number - 1,
-                is_enabled=False,
-            )
-        else:
-            await self._api.set_zone(
-                serial_number=self._serial_number,
-                zone_number=self._ac_zone.zone_number - 1,
-                is_enabled=True,
-            )
-        self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        is_enabled = hvac_mode != HVACMode.OFF
+        await self._zone.enable(is_enabled)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set the temperature."""
-        temp = kwargs.get("temperature")
-        hvac_mode = self.hvac_mode
-
-        if temp is None or not (self.min_temp <= temp <= self.max_temp):
-            raise ValueError(
-                f"Temperature {temp} is out of range ({self.min_temp}-{self.max_temp})."
-            )
-
-        if hvac_mode == HVACMode.COOL:
-            await self._api.set_temperature(
-                self._serial_number,
-                mode="COOL",
-                temperature=temp,
-                zone=self._ac_zone.zone_number - 1,
-            )
-        elif hvac_mode == HVACMode.HEAT:
-            await self._api.set_temperature(
-                self._serial_number,
-                mode="HEAT",
-                temperature=temp,
-                zone=self._ac_zone.zone_number - 1,
-            )
-        elif hvac_mode == HVACMode.AUTO:
-            await self._api.set_temperature(
-                self._serial_number,
-                mode="AUTO",
-                temperature={"cool": temp, "heat": temp},
-                zone=self._ac_zone.zone_number - 1,
-            )
-        else:
-            raise ValueError(f"Mode {hvac_mode} is invalid.")
-        self._attr_target_temperature = temp
-        self.async_write_ha_state()
+        await self._zone.set_temperature(temperature=kwargs["temperature"])

@@ -1,4 +1,4 @@
-name: Upload Python Package to PyPI when a Release is published
+name: Bump version tags on release
 
 on:
   release:
