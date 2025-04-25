@@ -93,16 +93,17 @@ class ActronSystemClimate(
         """Initialize an Actron Air Neo unit."""
         super().__init__(coordinator)
         self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
+        self._serial_number: str = self._status.ac_system.master_serial
         self._name: str = name
         self._attr_name: None = None
-        self._attr_unique_id: str = serial_number
+        self._attr_unique_id: str = self._serial_number
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, serial_number)},
+            identifiers={(DOMAIN, self._serial_number)},
             name=self._status.ac_system.system_name,
             manufacturer="Actron Air",
             model=self._status.ac_system.master_wc_model,
             sw_version=self._status.ac_system.master_wc_firmware_version,
-            serial_number=serial_number,
+            serial_number=self._serial_number,
         )
 
     @property

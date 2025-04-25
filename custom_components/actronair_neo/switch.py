@@ -55,10 +55,11 @@ class AwayModeSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._attr_unique_id: str = f"{serial_number}_{self._attr_translation_key}"
         self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
+        self._serial_number: str = self._status.ac_system.master_serial
+        self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, serial_number)},
+            identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:home-export-outline"
         self.off_icon = "mdi:home-import-outline"
@@ -94,10 +95,11 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._attr_unique_id: str = f"{serial_number}_{self._attr_translation_key}"
         self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
+        self._serial_number: str = self._status.ac_system.master_serial
+        self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, serial_number)},
+            identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:fan"
         self.off_icon = "mdi:fan-off"
@@ -133,10 +135,11 @@ class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._attr_unique_id: str = f"{serial_number}_{self._attr_translation_key}"
         self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
+        self._serial_number: str = self._status.ac_system.master_serial
+        self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, serial_number)},
+            identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:volume-low"
         self.off_icon = "mdi:volume-high"
@@ -172,10 +175,11 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._attr_unique_id: str = f"{serial_number}_{self._attr_translation_key}"
         self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
+        self._serial_number: str = self._status.ac_system.master_serial
+        self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, serial_number)},
+            identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:fan-plus"
         self.off_icon = "mdi:fan"

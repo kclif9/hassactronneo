@@ -7,7 +7,7 @@ from homeassistant.const import Platform
 
 _LOGGER = logging.getLogger(__package__)
 DOMAIN = "actronair_neo"
-PLATFORM = [Platform.CLIMATE, Platform.SENSOR, Platform.SWITCH]
+PLATFORM = [Platform.CLIMATE, Platform.COVER, Platform.SENSOR, Platform.SWITCH]
 
 ERROR_API_ERROR = "api_error"
 ERROR_INVALID_AUTH = "invalid_auth"
