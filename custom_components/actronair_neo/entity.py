@@ -36,7 +36,6 @@ class EntitySensor(CoordinatorEntity, Entity):
     ) -> None:
         """Initialise diagnostic sensor."""
         super().__init__(coordinator)
-        self._status = status
         self._sensor_name = sensor_name
         self._is_diagnostic = is_diagnostic
         self._entity_category = entity_category
@@ -46,9 +45,15 @@ class EntitySensor(CoordinatorEntity, Entity):
         self._attr_translation_key = translation_key
         self._attr_state_class = state_class
         self._attr_unique_id = translation_key
+        self._serial_number = status.ac_system.master_serial
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, self._status.ac_system.master_serial)},
+            identifiers={(DOMAIN, self._serial_number)},
         )
+
+    @property
+    def _status(self):
+        """Get the current status from the coordinator."""
+        return self.coordinator.get_status(self._serial_number)
 
     @property
     def available(self) -> bool:
@@ -95,17 +100,26 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._serial_number: str = serial_number
-        self._zone: ActronAirNeoZone = zone
+        self._zone_id: int = zone.zone_id
         self._state_key: str = state_key
         self._entity_category = entity_category
         self._enabled_default: bool = enabled_default
         self._attr_device_class: SensorDeviceClass = device_class
         self._attr_unit_of_measurement = unit_of_measurement
         self._attr_translation_key = translation_key
-        self._attr_unique_id: str = f"{self._serial_number}_zone_{self._zone.zone_id}_{translation_key}"
+        self._attr_unique_id: str = f"{self._serial_number}_zone_{zone.zone_id}_{translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, f"{self._serial_number}_zone_{self._zone.zone_id}")},
+            identifiers={(DOMAIN, f"{self._serial_number}_zone_{zone.zone_id}")},
         )
+
+    @property
+    def _zone(self) -> ActronAirNeoZone:
+        """Get the current zone data from the coordinator."""
+        status = self.coordinator.get_status(self._serial_number)
+        for zone in status.remote_zone_info:
+            if zone.zone_id == self._zone_id:
+                return zone
+        return None
 
     @property
     def available(self) -> bool:
@@ -180,9 +194,9 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._peripheral: ActronAirNeoPeripheral = peripheral
+        self._peripheral_id = peripheral.logical_address
         self._state_key = state_key
-        self._serial_number = self._peripheral.serial_number
+        self._serial_number = peripheral.serial_number
         self._entity_category = entity_category
         self._enabled_default = enabled_default
         self._attr_device_class = device_class
@@ -191,20 +205,30 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._attr_unique_id: str = (
             f"{self._serial_number}_{translation_key}"
         )
+        self._ac_serial = peripheral.master_serial
 
         suggested_area = None
-        if hasattr(self._peripheral, 'zones') and len(self._peripheral.zones) == 1:
-            zone = self._peripheral.zones[0]
+        if hasattr(peripheral, 'zones') and len(peripheral.zones) == 1:
+            zone = peripheral.zones[0]
             if hasattr(zone, 'title') and zone.title:
                 suggested_area = zone.title
 
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
-            name=f"{self._peripheral.device_type} {self._peripheral.logical_address}",
+            name=f"{peripheral.device_type} {peripheral.logical_address}",
             manufacturer="Actron Air",
-            model=self._peripheral.device_type,
+            model=peripheral.device_type,
             suggested_area=suggested_area,
         )
+
+    @property
+    def _peripheral(self) -> ActronAirNeoPeripheral:
+        """Get the current peripheral data from the coordinator."""
+        status = self.coordinator.get_status(self._ac_serial)
+        for peripheral in status.peripherals:
+            if peripheral.logical_address == self._peripheral_id:
+                return peripheral
+        return None
 
     @property
     def available(self) -> bool:

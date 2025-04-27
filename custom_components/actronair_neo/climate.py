@@ -92,19 +92,24 @@ class ActronSystemClimate(
     ) -> None:
         """Initialize an Actron Air Neo unit."""
         super().__init__(coordinator)
-        self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
-        self._serial_number: str = self._status.ac_system.master_serial
+        self._serial_number: str = serial_number
         self._name: str = name
         self._attr_name: None = None
         self._attr_unique_id: str = self._serial_number
+        initial_status = coordinator.get_status(serial_number)
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
-            name=self._status.ac_system.system_name,
+            name=initial_status.ac_system.system_name,
             manufacturer="Actron Air",
-            model=self._status.ac_system.master_wc_model,
-            sw_version=self._status.ac_system.master_wc_firmware_version,
+            model=initial_status.ac_system.master_wc_model,
+            sw_version=initial_status.ac_system.master_wc_firmware_version,
             serial_number=self._serial_number,
         )
+
+    @property
+    def _status(self) -> ActronAirNeoStatus:
+        """Get the current status from the coordinator."""
+        return self.coordinator.get_status(self._serial_number)
 
     @property
     def hvac_mode(self) -> HVACMode:
@@ -193,16 +198,26 @@ class ActronZoneClimate(CoordinatorEntity, ClimateEntity):
     ) -> None:
         """Initialize an Actron Air Neo unit."""
         super().__init__(coordinator)
-        self._zone: ActronAirNeoZone = zone
+        self._serial_number: str = serial_number
+        self._zone_id: int = zone.zone_id
         self._attr_name: None = None
-        self._attr_unique_id: str = f"{serial_number}_zone_{self._zone.zone_id}"
+        self._attr_unique_id: str = f"{serial_number}_zone_{zone.zone_id}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._attr_unique_id)},
-            name=self._zone.title,
+            name=zone.title,
             manufacturer="Actron Air",
             model="Zone",
-            suggested_area=self._zone.title,
+            suggested_area=zone.title,
         )
+
+    @property
+    def _zone(self) -> ActronAirNeoZone:
+        """Get the current zone data from the coordinator."""
+        status = self.coordinator.get_status(self._serial_number)
+        for zone in status.remote_zone_info:
+            if zone.zone_id == self._zone_id:
+                return zone
+        return None
 
     @property
     def hvac_mode(self) -> HVACMode:

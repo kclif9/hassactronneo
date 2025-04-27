@@ -55,14 +55,18 @@ class AwayModeSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
-        self._serial_number: str = self._status.ac_system.master_serial
+        self._serial_number: str = serial_number
         self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:home-export-outline"
         self.off_icon = "mdi:home-import-outline"
+
+    @property
+    def _status(self) -> ActronAirNeoStatus:
+        """Get the current status from the coordinator."""
+        return self.coordinator.get_status(self._serial_number)
 
     @property
     def is_on(self) -> bool:
@@ -95,14 +99,18 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
-        self._serial_number: str = self._status.ac_system.master_serial
+        self._serial_number: str = serial_number
         self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:fan"
         self.off_icon = "mdi:fan-off"
+
+    @property
+    def _status(self) -> ActronAirNeoStatus:
+        """Get the current status from the coordinator."""
+        return self.coordinator.get_status(self._serial_number)
 
     @property
     def is_on(self) -> bool:
@@ -135,14 +143,18 @@ class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
-        self._serial_number: str = self._status.ac_system.master_serial
+        self._serial_number: str = serial_number
         self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:volume-low"
         self.off_icon = "mdi:volume-high"
+
+    @property
+    def _status(self) -> ActronAirNeoStatus:
+        """Get the current status from the coordinator."""
+        return self.coordinator.get_status(self._serial_number)
 
     @property
     def is_on(self) -> bool:
@@ -175,14 +187,18 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, serial_number) -> None:
         """Initialize the away mode switch."""
         super().__init__(coordinator)
-        self._status: ActronAirNeoStatus = coordinator.api.state_manager.get_status(serial_number)
-        self._serial_number: str = self._status.ac_system.master_serial
+        self._serial_number: str = serial_number
         self._attr_unique_id: str = f"{self._serial_number}_{self._attr_translation_key}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
         )
         self.on_icon = "mdi:fan-plus"
         self.off_icon = "mdi:fan"
+
+    @property
+    def _status(self) -> ActronAirNeoStatus:
+        """Get the current status from the coordinator."""
+        return self.coordinator.get_status(self._serial_number)
 
     @property
     def is_on(self) -> bool:
@@ -195,9 +211,9 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
         return self.on_icon if self.is_on else self.off_icon
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the turbo fan mode on."""
+        """Turn the turbo mode on."""
         await self._status.user_aircon_settings.set_turbo_mode(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the turbo fan mode off."""
+        """Turn the turbo mode off."""
         await self._status.user_aircon_settings.set_turbo_mode(False)

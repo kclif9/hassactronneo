@@ -2,7 +2,7 @@
 
 from datetime import timedelta, datetime
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from actron_neo_api import ActronNeoAPI, ActronNeoAPIError, ActronNeoAuthError, ActronAirNeoStatus
 
@@ -41,6 +41,7 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.auth_error_count = 0
         self.hass = hass
         self.systems = []
+        self.status_objects: Dict[str, ActronAirNeoStatus] = {}
 
     async def _async_setup(self) -> None:
         """Perform initial setup, including refreshing the token."""
@@ -70,6 +71,9 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 serial = system.get("serial")
                 self.last_seen[serial] = current_time
                 status = self.api.state_manager.get_status(serial)
+                # Store the actual status object
+                self.status_objects[serial] = status
+                # Also maintain the serialized data for the DataUpdateCoordinator
                 status_data[serial] = status.to_dict() if hasattr(status, 'to_dict') else vars(status)
             return status_data
         except ActronNeoAuthError:
@@ -101,5 +105,10 @@ class ActronNeoDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return (current_time - last_seen_time) > STALE_DEVICE_TIMEOUT
 
     def get_status(self, serial_number: str) -> ActronAirNeoStatus:
-        """Get the original status object for a system."""
+        """Get the stored status object for a system."""
+        # First try to get from our stored objects
+        if serial_number in self.status_objects:
+            return self.status_objects[serial_number]
+
+        # Fallback to getting from the API state manager (shouldn't be needed in normal operation)
         return self.api.state_manager.get_status(serial_number)
