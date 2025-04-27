@@ -184,6 +184,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     def __init__(
         self,
         coordinator: ActronNeoDataUpdateCoordinator,
+        ac_serial_number: str,
         peripheral: ActronAirNeoPeripheral,
         translation_key: str,
         state_key: str,
@@ -194,6 +195,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._ac_serial = ac_serial_number
         self._peripheral_id = peripheral.logical_address
         self._state_key = state_key
         self._serial_number = peripheral.serial_number
@@ -205,7 +207,6 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         self._attr_unique_id: str = (
             f"{self._serial_number}_{translation_key}"
         )
-        self._ac_serial = peripheral.master_serial
 
         suggested_area = None
         if hasattr(peripheral, 'zones') and len(peripheral.zones) == 1:
@@ -256,10 +257,11 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
 class PeripheralBatterySensor(BasePeripheralSensor):
     """Battery sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator: ActronNeoDataUpdateCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
+    def __init__(self, coordinator: ActronNeoDataUpdateCoordinator, ac_serial: str, peripheral: ActronAirNeoPeripheral) -> None:
         """Initialize the battery sensor."""
         super().__init__(
             coordinator,
+            ac_serial,
             peripheral,
             "battery",
             "battery_level",
@@ -273,10 +275,11 @@ class PeripheralBatterySensor(BasePeripheralSensor):
 class PeripheralTemperatureSensor(BasePeripheralSensor):
     """Temperature sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator: ActronNeoDataUpdateCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
+    def __init__(self, coordinator: ActronNeoDataUpdateCoordinator, ac_serial: str, peripheral: ActronAirNeoPeripheral) -> None:
         """Initialize the temperature sensor."""
         super().__init__(
             coordinator,
+            ac_serial,
             peripheral,
             "temperature",
             "temperature",
@@ -288,10 +291,11 @@ class PeripheralTemperatureSensor(BasePeripheralSensor):
 class PeripheralHumiditySensor(BasePeripheralSensor):
     """Humidity sensor for Actron Air Neo zone."""
 
-    def __init__(self, coordinator: ActronNeoDataUpdateCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
+    def __init__(self, coordinator: ActronNeoDataUpdateCoordinator, ac_serial: str, peripheral: ActronAirNeoPeripheral) -> None:
         """Initialize the humidity sensor."""
         super().__init__(
             coordinator,
+            ac_serial,
             peripheral,
             "humidity",
             "humidity",

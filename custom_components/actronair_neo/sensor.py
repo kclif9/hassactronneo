@@ -27,7 +27,7 @@ async def async_setup_entry(
     entry: ActronConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Actron Air Neo sensors."""
+    """Set up Actron Air Neo entities."""
     coordinator = entry.runtime_data
 
     # Sensor configurations with appropriate entity categories, device classes, and enabled_default
@@ -160,9 +160,9 @@ async def async_setup_entry(
                 entities.append(ZoneHumiditySensor(coordinator, serial_number, zone))
 
         for peripheral in status.peripherals:
-            entities.append(PeripheralBatterySensor(coordinator, peripheral))
-            entities.append(PeripheralTemperatureSensor(coordinator, peripheral))
-            entities.append(PeripheralHumiditySensor(coordinator, peripheral))
+            entities.append(PeripheralBatterySensor(coordinator, serial_number, peripheral))
+            entities.append(PeripheralTemperatureSensor(coordinator, serial_number, peripheral))
+            entities.append(PeripheralHumiditySensor(coordinator, serial_number, peripheral))
 
         # Add all sensors
         async_add_entities(entities)
