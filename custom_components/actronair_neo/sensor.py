@@ -16,7 +16,6 @@ from .entity import (
     PeripheralHumiditySensor,
     PeripheralTemperatureSensor,
     ZoneHumiditySensor,
-    ZonePositionSensor,
     ZoneTemperatureSensor,
     DIAGNOSTIC_CATEGORY,
     CONFIG_CATEGORY,
