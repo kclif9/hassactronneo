@@ -4,7 +4,7 @@ from typing import Any
 
 from actron_neo_api import ActronNeoAPI, ActronAirNeoZone, ActronAirNeoStatus
 
-from homeassistant.components.cover import CoverDeviceClass, CoverEntity
+from homeassistant.components.cover import CoverDeviceClass, CoverEntity, CoverEntityFeature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -39,7 +39,7 @@ class ZonePositionSensor(CoordinatorEntity, CoverEntity):
     """Position sensor for Actron Air Neo zone."""
 
     _attr_has_entity_name: bool = True
-    _attr_supported_features: int = 0
+    _attr_supported_features: CoverEntityFeature = None
     _attr_translation_key: str = "zone_position"
     _attr_device_class: CoverDeviceClass = CoverDeviceClass.DAMPER
 
