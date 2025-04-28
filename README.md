@@ -16,6 +16,8 @@ This is a custom integration for Home Assistant to integrate the Actron Air Neo 
 
 ### HACS (Home Assistant Community Store)
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kclif9&repository=hassactronneo)
+
 1. Ensure that [HACS](https://hacs.xyz/) is installed.
 2. Go to HACS > Integrations.
 3. Click on the three dots in the top right corner and select "Custom repositories".
