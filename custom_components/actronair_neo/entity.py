@@ -24,6 +24,7 @@ class EntitySensor(CoordinatorEntity, Entity):
     def __init__(
         self,
         coordinator: ActronNeoDataUpdateCoordinator,
+        serial_number: str,
         status,
         translation_key: str,
         sensor_name: str,
@@ -45,7 +46,7 @@ class EntitySensor(CoordinatorEntity, Entity):
         self._attr_translation_key = translation_key
         self._attr_state_class = state_class
         self._attr_unique_id = translation_key
-        self._serial_number = status.ac_system.master_serial
+        self._serial_number = serial_number
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._serial_number)},
         )

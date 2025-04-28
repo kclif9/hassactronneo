@@ -142,6 +142,7 @@ async def async_setup_entry(
         ) in sensor_configs:
             sensor = EntitySensor(
                 coordinator = coordinator,
+                serial_number = serial_number,
                 status = status,
                 translation_key = translation_key,
                 sensor_name = sensor_name,
