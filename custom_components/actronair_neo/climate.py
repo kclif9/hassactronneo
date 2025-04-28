@@ -2,13 +2,12 @@
 
 from typing import Any
 
-from actron_neo_api import ActronNeoAPI, ActronAirNeoZone, ActronAirNeoStatus
+from actron_neo_api import ActronAirNeoZone, ActronAirNeoStatus
 
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
     HVACMode,
-    ClimateEntityDescription,
 )
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -129,8 +128,8 @@ class ActronSystemClimate(
     @property
     def fan_mode(self) -> str:
         """Return the current fan mode."""
-        mode = self._status.user_aircon_settings.mode
-        return FAN_MODE_MAPPING_REVERSE.get(mode, "AUTO")
+        fan_mode = self._status.user_aircon_settings.fan_mode
+        return FAN_MODE_MAPPING_REVERSE.get(fan_mode)
 
     @property
     def current_humidity(self) -> float:
