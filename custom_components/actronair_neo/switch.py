@@ -203,7 +203,7 @@ class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the switch is on."""
-        return self._status.user_aircon_settings.turbo_mode_enabled
+        return self._status.user_aircon_settings.turbo_enabled
 
     @property
     def icon(self) -> str:
