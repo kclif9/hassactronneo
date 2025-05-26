@@ -1,15 +1,11 @@
 """Sensor platform for Actron Air Neo integration."""
 
-import logging
-
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature, EntityCategory
+from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import ActronConfigEntry
-from .const import _LOGGER
+from .coordinator import ActronNeoConfigEntry
 from .entity import (
     EntitySensor,
     PeripheralBatterySensor,
@@ -18,17 +14,15 @@ from .entity import (
     ZoneHumiditySensor,
     ZoneTemperatureSensor,
     DIAGNOSTIC_CATEGORY,
-    CONFIG_CATEGORY,
 )
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ActronConfigEntry,
+    entry: ActronNeoConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Actron Air Neo entities."""
-    coordinator = entry.runtime_data
 
     # Sensor configurations with appropriate entity categories, device classes, and enabled_default
     # Format: translation_key, sensor_name, device_class, unit, entity_category, state_class, enabled_default
@@ -125,11 +119,11 @@ async def async_setup_entry(
         ),
     ]
 
+    system_coordinators = entry.runtime_data.system_coordinators
     entities: list[EntitySensor] = []
 
-    for system in coordinator.api.systems:
-        serial_number = system["serial"]
-        status = coordinator.api.state_manager.get_status(serial_number)
+    for coordinator in system_coordinators.values():
+        status = coordinator.data
 
         for (
             translation_key,
@@ -142,8 +136,6 @@ async def async_setup_entry(
         ) in sensor_configs:
             sensor = EntitySensor(
                 coordinator = coordinator,
-                serial_number = serial_number,
-                status = status,
                 translation_key = translation_key,
                 sensor_name = sensor_name,
                 device_class = device_class,
@@ -157,13 +149,13 @@ async def async_setup_entry(
 
         for zone in status.remote_zone_info:
             if zone.exists:
-                entities.append(ZoneTemperatureSensor(coordinator, serial_number, zone))
-                entities.append(ZoneHumiditySensor(coordinator, serial_number, zone))
+                entities.append(ZoneTemperatureSensor(coordinator, zone))
+                entities.append(ZoneHumiditySensor(coordinator, zone))
 
         for peripheral in status.peripherals:
-            entities.append(PeripheralBatterySensor(coordinator, serial_number, peripheral))
-            entities.append(PeripheralTemperatureSensor(coordinator, serial_number, peripheral))
-            entities.append(PeripheralHumiditySensor(coordinator, serial_number, peripheral))
+            entities.append(PeripheralBatterySensor(coordinator, peripheral))
+            entities.append(PeripheralTemperatureSensor(coordinator, peripheral))
+            entities.append(PeripheralHumiditySensor(coordinator, peripheral))
 
         # Add all sensors
         async_add_entities(entities)

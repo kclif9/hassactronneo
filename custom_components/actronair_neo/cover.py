@@ -1,8 +1,6 @@
 """Cover platform for Actron Air Neo integration."""
 
-from typing import Any
-
-from actron_neo_api import ActronNeoAPI, ActronAirNeoZone, ActronAirNeoStatus
+from actron_neo_api import ActronAirNeoZone
 
 from homeassistant.components.cover import CoverDeviceClass, CoverEntity, CoverEntityFeature
 from homeassistant.core import HomeAssistant
@@ -10,27 +8,26 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import ActronConfigEntry
 from .const import DOMAIN
-from .coordinator import ActronNeoDataUpdateCoordinator
+from .coordinator import ActronNeoConfigEntry, ActronNeoSystemCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ActronConfigEntry,
+    entry: ActronNeoConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Actron Air Neo cover entities."""
-    coordinator = entry.runtime_data
+    system_coordinators = entry.runtime_data.system_coordinators
     entities: list[CoverEntity] = []
 
-    for system in coordinator.systems:
-        serial_number = system["serial"]
-        status = coordinator.api.state_manager.get_status(serial_number)
-
-        for zone in status.remote_zone_info:
-            if zone.exists:
-                entities.append(ZonePositionSensor(coordinator, serial_number, zone))
+    for coordinator in system_coordinators.values():
+        status = coordinator.data
+        entities.extend(
+            ZonePositionSensor(coordinator, zone)
+            for zone in status.remote_zone_info
+            if zone.exists
+        )
 
     async_add_entities(entities)
 
@@ -45,24 +42,22 @@ class ZonePositionSensor(CoordinatorEntity, CoverEntity):
 
     def __init__(
         self,
-        coordinator: ActronNeoDataUpdateCoordinator,
-        serial_number: str,
+        coordinator: ActronNeoSystemCoordinator,
         zone: ActronAirNeoZone,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._serial_number: str = coordinator.serial_number
         self._zone: ActronAirNeoZone = zone
-        self._attr_unique_id: str = f"{serial_number}_zone_{self._zone.zone_id}_position"
+        self._attr_unique_id: str = f"{self._serial_number}_zone_{self._zone.zone_id}_position"
         self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, f"{serial_number}_zone_{self._zone.zone_id}")},
+            identifiers={(DOMAIN, f"{self._serial_number}_zone_{self._zone.zone_id}")},
         )
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not self.coordinator.last_update_success:
-            return False
-        return self.state is not None
+        return not self.coordinator.is_device_stale()
 
     @property
     def current_cover_position(self) -> str | None:
