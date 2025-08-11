@@ -1,18 +1,18 @@
-# Actron Air Neo Integration
+# Actron Air Integration
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/kclif9/hassactronneo)
 ![GitHub](https://img.shields.io/github/license/kclif9/hassactronneo)
 
-This is a custom integration for Home Assistant to integrate the Actron Air Neo system.
+This is a custom integration for Home Assistant to integrate the Actron Air ecosystem. This integration currently supports the Actron Air Neo, but is targeted to support other systems in future. Let me know if you're keen to help test other Actron Air products.
 
 ## Installation
 
 ### Prerequisites
 
 - Home Assistant (version 2023.3.0 or later recommended)
-- An Actron Air Neo air conditioning system
-- A valid Actron Air Neo account (username and password)
-- Your Actron Air Neo system must be connected to the internet
+- An Actron Air air conditioning system
+- A valid Actron Air account (username and password)
+- Your Actron Air system must be connected to the internet
 
 ### HACS (Home Assistant Community Store)
 
@@ -22,13 +22,13 @@ This is a custom integration for Home Assistant to integrate the Actron Air Neo 
 2. Go to HACS > Integrations.
 3. Click on the three dots in the top right corner and select "Custom repositories".
 4. Add the repository URL: `https://github.com/kclif9/hassactronneo` and select "Integration".
-5. Find "Actron Air Neo" in the list and click "Install".
+5. Find "Actron Air" in the list and click "Install".
 6. Restart Home Assistant after installation.
 
 ### Manual Installation
 
 1. Download the `custom_components` directory from the [latest release](https://github.com/kclif9/hassactronneo/releases/latest).
-2. Copy the `custom_components/actronair_neo` directory to your Home Assistant configuration directory (typically `/config/custom_components/`).
+2. Copy the `custom_components/actronair` directory to your Home Assistant configuration directory (typically `/config/custom_components/`).
 3. Restart Home Assistant after installation.
 
 ## Configuration
@@ -37,39 +37,37 @@ This is a custom integration for Home Assistant to integrate the Actron Air Neo 
 
 The integration requires the following information during setup:
 
-- **Username**: Your Actron Air Neo account username (email address)
-- **Password**: Your Actron Air Neo account password
+- **Username**: Your Actron Air account username (email address)
+- **Password**: Your Actron Air account password
 
 ### Setup Process
 
 1. In the Home Assistant UI, navigate to `Configuration` > `Devices & Services`.
 2. Click the `+ Add Integration` button.
-3. Search for `Actron Air Neo` and select it.
-4. Enter your Actron Air Neo username and password.
-5. The integration will connect to your Actron Air Neo account and discover all your connected devices.
+3. Search for `Actron Air` and select it.
+4. When prompted with the oAuth link, click it and login to your Actron Air account.
+5. The integration will connect to your Actron Air account and discover all your connected devices.
 
 ### Configuration Notes
 
-- The integration uses a pairing token for secure authentication with the Actron Neo API.
-- One configuration entry is created per Actron Air Neo account.
 - Each air conditioning unit under your account will be added as a separate device.
 
 ## Features
 
-- **Climate Control**: Control your Actron Air Neo air conditioning units.
+- **Climate Control**: Control your Actron Air air conditioning units.
 - **Sensors**: Monitor various sensors such as temperature, humidity, and system status.
 - **Switches**: Control switches for continuous fan and zone control.
 
 ## Supported Devices
 
-This integration supports the following Actron Air Neo devices:
+This integration supports the following Actron Air devices:
 
 - **Actron Air Neo Series**: All models of the Neo Series air conditioners
 - **Zone Controllers**: Control individual zones within your system
-- **Wall Controllers**: Compatible with Neo wall controller units
-- **Temperature/Humidity Sensors**: Compatible with Neo remote temperature sensors
+- **Wall Controllers**: Compatible with wall controller units
+- **Temperature/Humidity Sensors**: Compatible with remote temperature sensors
 
-The integration does not currently support older Actron Air models that are not part of the Neo ecosystem.
+The integration does not currently support older Actron Air models, or those that are not part of the Neo ecosystem. We are keen to support other systems in future. Let me know if you're keen to help test other Actron Air products.
 
 ## Supported Functions
 
@@ -100,15 +98,15 @@ The integration supports the following functions:
 
 The integration updates data using the following approach:
 
-- **Update Frequency**: Data is polled from the Actron Air Neo cloud service every 30 seconds.
+- **Update Frequency**: Data is polled from the Actron Air cloud service every 30 seconds.
 - **Update Method**: The integration uses a cloud polling approach as specified by the `iot_class: cloud_polling` in the integration manifest.
 - **Coordinator Pattern**: All entities share a common update coordinator to minimize API calls and improve performance.
 - **Token Refresh**: Authentication tokens are automatically refreshed when they expire.
-- **API Limits**: The integration respects the API rate limits of the Actron Air Neo cloud service to prevent lockouts.
+- **API Limits**: The integration respects the API rate limits of the Actron Air cloud service to prevent lockouts.
 
 ## Example Use Cases
 
-Here are some common use cases for the Actron Air Neo integration:
+Here are some common use cases for the Actron Air integration:
 
 ### Basic Climate Automation
 
@@ -173,14 +171,14 @@ automation:
 
 The integration has the following known limitations:
 
-- **Cloud Dependency**: The integration relies on the Actron Air Neo cloud service, so internet connectivity is required for operation.
-- **Zone Configuration**: Zone names and configurations are determined Neo controller and cannot be changed from Home Assistant.
-- **System-Level Settings**: Some advanced system-level settings can only be modified through the Neo wall controller.
-- **Firmware Updates**: The integration does not support triggering firmware updates, which must be done through the Neo wall controller.
+- **Cloud Dependency**: The integration relies on the Actron Air cloud service, so internet connectivity is required for operation.
+- **Zone Configuration**: Zone names and configurations are determined controller and cannot be changed from Home Assistant.
+- **System-Level Settings**: Some advanced system-level settings can only be modified through the wall controller.
+- **Firmware Updates**: The integration does not support triggering firmware updates, which must be done through the wall controller.
 
 ## Troubleshooting
 
-If you encounter issues, please check the Home Assistant logs for any error messages related to the `actronair_neo` integration.
+If you encounter issues, please check the Home Assistant logs for any error messages related to the `actronair` integration.
 
 ### Common Issues
 
@@ -198,12 +196,12 @@ If you encounter issues, please check the Home Assistant logs for any error mess
 #### Connection Errors
 - **Symptom**: Entities unavailable, cannot control system
 - **Possible Causes**:
-  - Actron Air Neo cloud service is down
+  - Actron Air cloud service is down
   - Your internet connection is disrupted
-  - Your Actron Neo system is offline
+  - Your Actron system is offline
 - **Solutions**:
   - Check your internet connection
-  - Verify the Actron Air Neo system is powered on and connected to WiFi
+  - Verify the Actron Air system is powered on and connected to WiFi
   - Check if the official Actron Air app can connect to your system
 
 #### Zone Control Issues
@@ -219,7 +217,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
 #### API Errors
 - **Symptom**: Errors in logs mentioning API issues, "too many requests", or timeouts
 - **Possible Causes**:
-  - Rate limiting by the Actron Air Neo cloud service
+  - Rate limiting by the Actron Air cloud service
   - API changes by Actron Air
 - **Solutions**:
   - Reduce the number of automations that control the system
@@ -235,7 +233,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
 To check your logs for troubleshooting:
 
 1. Go to Home Assistant "Settings" > "System" > "Logs"
-2. Filter for "actronair_neo" to see messages specific to this integration
+2. Filter for "actronair" to see messages specific to this integration
 3. Look for error messages that can help identify the issue
 
 If you need further assistance, please open an issue on the [GitHub repository](https://github.com/kclif9/hassactronneo/issues) with the following information:
@@ -247,7 +245,7 @@ If you need further assistance, please open an issue on the [GitHub repository](
 ## Removing the Integration
 
 1. Go to `Configuration` > `Devices & Services`.
-2. Find the Actron Air Neo integration card and click on it.
+2. Find the Actron Air integration card and click on it.
 3. Click the three dots in the top-right corner and select "Delete".
 4. Confirm the deletion.
 
@@ -268,4 +266,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Home Assistant](https://www.home-assistant.io/)
 - [HACS](https://hacs.xyz/)
-- [Actron Neo API](https://github.com/kclif9/actronneoapi)
+- [Actron Air Neo API](https://github.com/kclif9/actronneoapi)
