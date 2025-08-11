@@ -1,4 +1,4 @@
-"""The Actron Air Neo integration."""
+"""The Actron Air integration."""
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant

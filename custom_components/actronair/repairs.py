@@ -1,4 +1,4 @@
-"""Repair issues for the Actron Air Neo integration."""
+"""Repair issues for the Actron Air integration."""
 
 from __future__ import annotations
 

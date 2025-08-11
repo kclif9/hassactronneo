@@ -1,4 +1,4 @@
-"""Sensor platform for Actron Air Neo integration."""
+"""Sensor platform for Actron Air integration."""
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature
@@ -22,7 +22,7 @@ async def async_setup_entry(
     entry: ActronNeoConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Actron Air Neo entities."""
+    """Set up Actron Air entities."""
 
     # Sensor configurations with appropriate entity categories, device classes, and enabled_default
     # Format: translation_key, sensor_name, device_class, unit, entity_category, state_class, enabled_default

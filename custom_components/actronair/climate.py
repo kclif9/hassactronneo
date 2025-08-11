@@ -1,4 +1,4 @@
-"""Climate platform for Actron Air Neo integration."""
+"""Climate platform for Actron Air integration."""
 
 from typing import Any
 
@@ -46,7 +46,7 @@ async def async_setup_entry(
     entry: ActronNeoConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up Actron Air Neo climate entities."""
+    """Set up Actron Air climate entities."""
     system_coordinators = entry.runtime_data.system_coordinators
     entities: list[ClimateEntity] = []
 
@@ -65,7 +65,7 @@ async def async_setup_entry(
 
 
 class BaseClimateEntity(CoordinatorEntity[ActronNeoSystemCoordinator], ClimateEntity):
-    """Base class for Actron Air Neo climate entities."""
+    """Base class for Actron Air climate entities."""
 
     _attr_has_entity_name = True
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
@@ -84,14 +84,14 @@ class BaseClimateEntity(CoordinatorEntity[ActronNeoSystemCoordinator], ClimateEn
         coordinator: ActronNeoSystemCoordinator,
         name: str,
     ) -> None:
-        """Initialize an Actron Air Neo unit."""
+        """Initialize an Actron Air unit."""
         super().__init__(coordinator)
         self._serial_number = coordinator.serial_number
         self._name = name
 
 
 class ActronSystemClimate(BaseClimateEntity):
-    """Representation of the Actron Air Neo system."""
+    """Representation of the Actron Air system."""
 
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
@@ -105,7 +105,7 @@ class ActronSystemClimate(BaseClimateEntity):
         coordinator: ActronNeoSystemCoordinator,
         name: str,
     ) -> None:
-        """Initialize an Actron Air Neo unit."""
+        """Initialize an Actron Air unit."""
         super().__init__(coordinator, name)
         serial_number = coordinator.serial_number
         self._attr_unique_id = serial_number
@@ -197,7 +197,7 @@ class ActronZoneClimate(BaseClimateEntity):
         coordinator: ActronNeoSystemCoordinator,
         zone: ActronAirNeoZone,
     ) -> None:
-        """Initialize an Actron Air Neo unit."""
+        """Initialize an Actron Air unit."""
         super().__init__(coordinator, zone.title)
         serial_number = coordinator.serial_number
         self._zone_id: int = zone.zone_id

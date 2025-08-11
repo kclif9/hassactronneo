@@ -1,4 +1,4 @@
-"""Diagnostics support for Actron Air Neo."""
+"""Diagnostics support for Actron Air."""
 from __future__ import annotations
 
 from typing import Any

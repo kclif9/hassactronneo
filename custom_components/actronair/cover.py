@@ -1,4 +1,4 @@
-"""Cover platform for Actron Air Neo integration."""
+"""Cover platform for Actron Air integration."""
 
 from actron_neo_api import ActronAirNeoZone
 
@@ -17,7 +17,7 @@ async def async_setup_entry(
     entry: ActronNeoConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up Actron Air Neo cover entities."""
+    """Set up Actron Air cover entities."""
     system_coordinators = entry.runtime_data.system_coordinators
     entities: list[CoverEntity] = []
 
@@ -33,7 +33,7 @@ async def async_setup_entry(
 
 
 class ZonePositionSensor(CoordinatorEntity, CoverEntity):
-    """Position sensor for Actron Air Neo zone."""
+    """Position sensor for Actron Air zone."""
 
     _attr_has_entity_name: bool = True
     _attr_supported_features: CoverEntityFeature = None

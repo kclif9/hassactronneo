@@ -1,4 +1,4 @@
-"""Switch platform for Actron Neo integration."""
+"""Switch platform for Actron Air integration."""
 
 from typing import Any
 
@@ -18,7 +18,7 @@ async def async_setup_entry(
     entry: ActronNeoConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Actron Neo switches."""
+    """Set up Actron Air switches."""
     # Extract API and coordinator from hass.data
     system_coordinators = entry.runtime_data.system_coordinators
 
@@ -37,7 +37,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 class AwayModeSwitch(CoordinatorEntity, SwitchEntity):
-    """Representation of the Actron Air Neo away mode switch."""
+    """Representation of the Actron Air away mode switch."""
 
     _attr_has_entity_name = True
     _attr_translation_key = "away_mode"
@@ -76,7 +76,7 @@ class AwayModeSwitch(CoordinatorEntity, SwitchEntity):
 
 
 class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
-    """Representation of the Actron Air Neo continuous fan switch."""
+    """Representation of the Actron Air continuous fan switch."""
 
     _attr_has_entity_name = True
     _attr_translation_key = "continuous_fan"
@@ -115,7 +115,7 @@ class ContinuousFanSwitch(CoordinatorEntity, SwitchEntity):
 
 
 class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
-    """Representation of the Actron Air Neo quiet mode switch."""
+    """Representation of the Actron Air quiet mode switch."""
 
     _attr_has_entity_name = True
     _attr_translation_key = "quiet_mode"
@@ -154,7 +154,7 @@ class QuietModeSwitch(CoordinatorEntity, SwitchEntity):
 
 
 class TurboModeSwitch(CoordinatorEntity, SwitchEntity):
-    """Representation of the Actron Air Neo turbo mode switch."""
+    """Representation of the Actron Air turbo mode switch."""
 
     _attr_has_entity_name = True
     _attr_translation_key = "turbo_mode"

@@ -1,4 +1,4 @@
-"""Sensor platform for Actron Neo integration."""
+"""Sensor platform for Actron Air integration."""
 
 from actron_neo_api import ActronAirNeoPeripheral, ActronAirNeoZone
 
@@ -79,7 +79,7 @@ class EntitySensor(CoordinatorEntity, Entity):
 
 
 class BaseZoneSensor(CoordinatorEntity, Entity):
-    """Base class for Actron Air Neo sensors."""
+    """Base class for Actron Air sensors."""
 
     _attr_has_entity_name = True
 
@@ -137,7 +137,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
 
 
 class ZoneTemperatureSensor(BaseZoneSensor):
-    """Temperature sensor for Actron Air Neo zone."""
+    """Temperature sensor for Actron Air zone."""
 
     def __init__(self, coordinator: ActronNeoSystemCoordinator, zone) -> None:
         """Initialize the temperature sensor."""
@@ -152,7 +152,7 @@ class ZoneTemperatureSensor(BaseZoneSensor):
 
 
 class ZoneHumiditySensor(BaseZoneSensor):
-    """Humidity sensor for Actron Air Neo zone."""
+    """Humidity sensor for Actron Air zone."""
 
     def __init__(self, coordinator: ActronNeoSystemCoordinator, zone) -> None:
         """Initialize the humidity sensor."""
@@ -167,7 +167,7 @@ class ZoneHumiditySensor(BaseZoneSensor):
 
 
 class BasePeripheralSensor(CoordinatorEntity, Entity):
-    """Base class for Actron Air Neo sensors."""
+    """Base class for Actron Air sensors."""
 
     _attr_has_entity_name = True
 
@@ -241,7 +241,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
 
 
 class PeripheralBatterySensor(BasePeripheralSensor):
-    """Battery sensor for Actron Air Neo zone."""
+    """Battery sensor for Actron Air zone."""
 
     def __init__(self, coordinator: ActronNeoSystemCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
         """Initialize the battery sensor."""
@@ -258,7 +258,7 @@ class PeripheralBatterySensor(BasePeripheralSensor):
 
 
 class PeripheralTemperatureSensor(BasePeripheralSensor):
-    """Temperature sensor for Actron Air Neo zone."""
+    """Temperature sensor for Actron Air zone."""
 
     def __init__(self, coordinator: ActronNeoSystemCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
         """Initialize the temperature sensor."""
@@ -273,7 +273,7 @@ class PeripheralTemperatureSensor(BasePeripheralSensor):
 
 
 class PeripheralHumiditySensor(BasePeripheralSensor):
-    """Humidity sensor for Actron Air Neo zone."""
+    """Humidity sensor for Actron Air zone."""
 
     def __init__(self, coordinator: ActronNeoSystemCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
         """Initialize the humidity sensor."""

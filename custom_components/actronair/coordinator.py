@@ -1,4 +1,4 @@
-"""Coordinator for Actron Air Neo integration."""
+"""Coordinator for Actron Air integration."""
 
 from dataclasses import dataclass
 from datetime import timedelta
@@ -27,7 +27,7 @@ ERROR_UNKNOWN = "unknown_error"
 
 @dataclass
 class ActronNeoRuntimeData:
-    """Runtime data for the Actron Air Neo integration."""
+    """Runtime data for the Actron Air integration."""
 
     api_client: "ActronNeoApiClient"
     system_coordinators: dict[str, "ActronNeoSystemCoordinator"]
@@ -40,7 +40,7 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 
 class ActronNeoApiClient:
-    """Client for Actron Neo API."""
+    """Client for Actron Air API."""
 
     def __init__(self, hass: HomeAssistant, entry: ActronNeoConfigEntry) -> None:
         """Initialize the client."""
@@ -56,17 +56,17 @@ class ActronNeoApiClient:
             await self.api.update_status()
         except ActronNeoAuthError:
             _LOGGER.error(
-                "Authentication error while setting up Actron Neo integration"
+                "Authentication error while setting up Actron Air integration"
             )
             raise
         except ActronNeoAPIError as err:
-            _LOGGER.error("API error while setting up Actron Neo integration: %s", err)
+            _LOGGER.error("API error while setting up Actron Air integration: %s", err)
             raise
         return True
 
 
 class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
-    """System coordinator for Actron Air Neo integration."""
+    """System coordinator for Actron Air integration."""
 
     def __init__(
         self,
@@ -79,7 +79,7 @@ class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
         super().__init__(
             hass,
             _LOGGER,
-            name="Actron Neo Status",
+            name="Actron Air Status",
             update_interval=SCAN_INTERVAL,
             config_entry=entry,
         )

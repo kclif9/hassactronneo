@@ -1,4 +1,4 @@
-"""Constants used by Actron Air Neo integration."""
+"""Constants used by Actron Air integration."""
 
 from datetime import timedelta
 import logging
