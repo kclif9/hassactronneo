@@ -18,14 +18,18 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from .const import _LOGGER, STALE_DEVICE_TIMEOUT
+from .const import _LOGGER
+
+STALE_DEVICE_TIMEOUT = timedelta(hours=24)
+ERROR_NO_SYSTEMS_FOUND = "no_systems_found"
+ERROR_UNKNOWN = "unknown_error"
 
 
 @dataclass
 class ActronNeoRuntimeData:
     """Runtime data for the Actron Air Neo integration."""
 
-    api_coordinator: "ActronNeoApiCoordinator"
+    api_client: "ActronNeoApiClient"
     system_coordinators: dict[str, "ActronNeoSystemCoordinator"]
 
 
@@ -33,25 +37,23 @@ type ActronNeoConfigEntry = ConfigEntry[ActronNeoRuntimeData]
 
 AUTH_ERROR_THRESHOLD = 3
 SCAN_INTERVAL = timedelta(seconds=30)
-PARALLEL_UPDATES = 0
 
 
-class ActronNeoApiCoordinator:
-    """Coordinator for Actron Neo API."""
+class ActronNeoApiClient:
+    """Client for Actron Neo API."""
 
     def __init__(self, hass: HomeAssistant, entry: ActronNeoConfigEntry) -> None:
-        """Initialize the coordinator."""
+        """Initialize the client."""
         self.hass = hass
         self.entry = entry
-        self.api = ActronNeoAPI(pairing_token=entry.data[CONF_API_TOKEN])
+        self.api = ActronNeoAPI(refresh_token=entry.data[CONF_API_TOKEN])
         self.systems: list[ActronAirNeoACSystem] = []
 
     async def async_setup(self) -> bool:
         """Perform initial setup, including refreshing the token."""
         try:
-            await self.api.refresh_token()
-            systems = await self.api.get_ac_systems()
-            self.systems = systems
+            self.systems = await self.api.get_ac_systems()
+            await self.api.update_status()
         except ActronNeoAuthError:
             _LOGGER.error(
                 "Authentication error while setting up Actron Neo integration"
@@ -70,7 +72,7 @@ class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
         self,
         hass: HomeAssistant,
         entry: ActronNeoConfigEntry,
-        api_coordinator: ActronNeoApiCoordinator,
+        api_client: ActronNeoApiClient,
         system: ActronAirNeoACSystem,
     ) -> None:
         """Initialize the coordinator."""
@@ -83,7 +85,7 @@ class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
         )
         self.system = system
         self.serial_number = system["serial"]
-        self.api = api_coordinator.api
+        self.api = api_client.api
         self.status: ActronAirNeoStatus = self.api.state_manager.get_status(
             self.serial_number
         )
@@ -91,8 +93,9 @@ class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch updates and merge incremental changes into the full state."""
-        self.last_seen = dt_util.utcnow()
+        await self.api.update_status()
         self.status = self.api.state_manager.get_status(self.serial_number)
+        self.last_seen = dt_util.utcnow()
         return self.status
 
     def is_device_stale(self) -> bool:

@@ -1,36 +1,20 @@
 {
   "title": "Actron Air Neo",
   "config": {
-    "step": {
-      "user": {
-        "title": "Set up Actron Air Neo",
-        "description": "Enter your Actron Air Neo account credentials to connect.",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        },
-        "data_description": {
-          "username": "Your account username",
-          "password": "Your account password"
-        }
+      "abort": {
+          "already_configured": "Account is already configured",
+          "oauth2_error": "Failed to start OAuth2 flow"
       },
-      "reauth_confirm": {
-        "title": "Reauthenticate with Actron Air Neo",
-        "description": "Your authentication for account {account} has expired. Please re-enter your credentials to continue."
+      "error": {
+          "authorization_pending": "Authorization is still pending. Please complete the authorization process and try again.",
+          "oauth2_error": "Failed to start OAuth2 flow. Please try again later."
+      },
+      "step": {
+          "user": {
+              "description": "To authorize your ActronAir account:\n\n1. Go to: {verification_uri}\n2. Enter code: **{user_code}**\n3. Complete authorization within {expires_minutes} minutes\n\nClick **Submit** after completing authorization.",
+              "title": "ActronAir OAuth2 Authorization"
+          }
       }
-    },
-    "error": {
-      "invalid_auth": "Invalid username or password. Please check your credentials and try again.",
-      "api_error": "An error occurred while connecting to Actron Air Neo. Please try again later.",
-      "no_systems_found": "No systems found in your account. Please check your account and try again.",
-      "cannot_connect": "Failed to connect to Actron Air Neo. Please check your internet connection and try again.",
-      "unknown": "An unexpected error occurred. Please try again later."
-    },
-    "abort": {
-      "already_configured": "This Actron Air Neo account is already configured.",
-      "reauth_successful": "Re-authentication was successful.",
-      "reconfiguration_successful": "Reconfiguration was successful."
-    }
   },
   "options": {
     "step": {
