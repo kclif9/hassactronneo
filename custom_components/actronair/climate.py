@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import ActronNeoConfigEntry, ActronNeoSystemCoordinator
+from .coordinator import ActronAirConfigEntry, ActronAirSystemCoordinator
 
 PARALLEL_UPDATES = 0
 
@@ -43,7 +43,7 @@ HVAC_MODE_MAPPING_HA_TO_ACTRONAIR = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ActronNeoConfigEntry,
+    entry: ActronAirConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Actron Air climate entities."""
@@ -64,7 +64,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class BaseClimateEntity(CoordinatorEntity[ActronNeoSystemCoordinator], ClimateEntity):
+class BaseClimateEntity(CoordinatorEntity[ActronAirSystemCoordinator], ClimateEntity):
     """Base class for Actron Air climate entities."""
 
     _attr_has_entity_name = True
@@ -81,7 +81,7 @@ class BaseClimateEntity(CoordinatorEntity[ActronNeoSystemCoordinator], ClimateEn
 
     def __init__(
         self,
-        coordinator: ActronNeoSystemCoordinator,
+        coordinator: ActronAirSystemCoordinator,
         name: str,
     ) -> None:
         """Initialize an Actron Air unit."""
@@ -102,7 +102,7 @@ class ActronSystemClimate(BaseClimateEntity):
 
     def __init__(
         self,
-        coordinator: ActronNeoSystemCoordinator,
+        coordinator: ActronAirSystemCoordinator,
         name: str,
     ) -> None:
         """Initialize an Actron Air unit."""
@@ -194,7 +194,7 @@ class ActronZoneClimate(BaseClimateEntity):
 
     def __init__(
         self,
-        coordinator: ActronNeoSystemCoordinator,
+        coordinator: ActronAirSystemCoordinator,
         zone: ActronAirNeoZone,
     ) -> None:
         """Initialize an Actron Air unit."""

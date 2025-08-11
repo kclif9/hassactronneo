@@ -1,4 +1,4 @@
-"""Tests for the Actron Neo entities."""
+"""Tests for the Actron Air entities."""
 
 from unittest.mock import Mock, patch
 
@@ -8,7 +8,7 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.actronair_neo.entity import (
+from custom_components.actronair.entity import (
     EntitySensor,
     BaseZoneSensor,
     ZoneTemperatureSensor,
@@ -16,7 +16,7 @@ from custom_components.actronair_neo.entity import (
     BasePeripheralSensor,
     PeripheralTemperatureSensor,
 )
-from custom_components.actronair_neo.const import DOMAIN
+from custom_components.actronair.const import DOMAIN
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
-"""Constants used by Actron Air Neo integration."""
+"""Constants used by Actron Air integration."""
 
-DOMAIN = "actronair_neo"
+DOMAIN = "actronair"
 PLATFORM = ["climate", "sensor", "switch"]
 
 ERROR_API_ERROR = "api_error"

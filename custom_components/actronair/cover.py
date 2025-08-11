@@ -9,12 +9,12 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import ActronNeoConfigEntry, ActronNeoSystemCoordinator
+from .coordinator import ActronAirConfigEntry, ActronAirSystemCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ActronNeoConfigEntry,
+    entry: ActronAirConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Actron Air cover entities."""
@@ -42,7 +42,7 @@ class ZonePositionSensor(CoordinatorEntity, CoverEntity):
 
     def __init__(
         self,
-        coordinator: ActronNeoSystemCoordinator,
+        coordinator: ActronAirSystemCoordinator,
         zone: ActronAirNeoZone,
     ) -> None:
         """Initialize the sensor."""

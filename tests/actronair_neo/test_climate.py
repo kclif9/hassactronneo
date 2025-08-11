@@ -1,4 +1,4 @@
-"""Tests for the Actron Neo climate platform."""
+"""Tests for the Actron Air climate platform."""
 
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -11,7 +11,7 @@ from homeassistant.components.climate import (
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 
-from custom_components.actronair_neo.climate import (
+from custom_components.actronair.climate import (
     ActronSystemClimate,
     ActronZoneClimate,
     async_setup_entry,
@@ -19,7 +19,7 @@ from custom_components.actronair_neo.climate import (
     FAN_MODE_MAPPING_REVERSE,
     FAN_MODE_MAPPING,
 )
-from custom_components.actronair_neo.const import DOMAIN
+from custom_components.actronair.const import DOMAIN
 
 
 @pytest.fixture

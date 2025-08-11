@@ -1,4 +1,4 @@
-"""Config flow test case for the Actron Air Neo Integration."""
+"""Config flow test case for the Actron Air Integration."""
 
 from unittest.mock import AsyncMock, patch
 
@@ -16,7 +16,7 @@ from .const import DOMAIN, ERROR_API_ERROR, ERROR_INVALID_AUTH, ERROR_NO_SYSTEMS
 def mock_actron_api():
     """Mock the ActronNeoAPI class."""
     with patch(
-        "custom_components.actron_neo.config_flow.ActronNeoAPI", autospec=True
+        "custom_components.actronair.config_flow.ActronNeoAPI", autospec=True
     ) as mock_api:
         yield mock_api
 

@@ -9,13 +9,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import ActronNeoConfigEntry
+from .coordinator import ActronAirConfigEntry
 from .entity import CONFIG_CATEGORY
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ActronNeoConfigEntry,
+    entry: ActronAirConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Actron Air switches."""

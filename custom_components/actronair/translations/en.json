@@ -1,5 +1,5 @@
 {
-  "title": "Actron Air Neo",
+  "title": "Actron Air",
   "config": {
       "abort": {
           "already_configured": "Account is already configured",
@@ -19,15 +19,15 @@
   "options": {
     "step": {
       "init": {
-        "title": "Actron Air Neo Options",
-        "description": "Configure options for the Actron Air Neo integration.",
+        "title": "Actron Air Options",
+        "description": "Configure options for the Actron Air integration.",
         "data": {
           "reconfigure": "Reconfigure account credentials"
         }
       },
       "reconfigure": {
-        "title": "Reconfigure Actron Air Neo Account",
-        "description": "Update your Actron Air Neo account credentials.",
+        "title": "Reconfigure Actron Air Account",
+        "description": "Update your Actron Air account credentials.",
         "data": {
           "username": "Username",
           "password": "Password"
@@ -37,8 +37,8 @@
   },
   "device_automation": {
     "action_type": {
-      "turn_on": "Turn on Actron Air Neo device",
-      "turn_off": "Turn off Actron Air Neo device"
+      "turn_on": "Turn on Actron Air device",
+      "turn_off": "Turn off Actron Air device"
     }
   },
   "entity": {
@@ -113,8 +113,8 @@
   },
   "issues": {
     "stale_auth": {
-      "title": "Actron Air Neo authentication expired",
-      "description": "The authentication for your {name} Actron Air Neo account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air Neo account."
+      "title": "Actron Air authentication expired",
+      "description": "The authentication for your {name} Actron Air account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air account."
     },
     "confirm": {
       "title": "Confirm repair",
