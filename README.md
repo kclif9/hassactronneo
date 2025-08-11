@@ -5,6 +5,8 @@
 
 This is a custom integration for Home Assistant to integrate the Actron Air ecosystem. This integration currently supports the Actron Air Neo, but is targeted to support other systems in future. Let me know if you're keen to help test other Actron Air products.
 
+This integration is currently the test version of the integration being submitted to Home Assistant for adding to the core integrations.
+
 ## Installation
 
 ### Prerequisites
