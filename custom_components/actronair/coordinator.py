@@ -19,26 +19,26 @@ ERROR_UNKNOWN = "unknown_error"
 
 
 @dataclass
-class ActronNeoRuntimeData:
+class ActronAirRuntimeData:
     """Runtime data for the Actron Air Neo integration."""
 
     api: ActronNeoAPI
-    system_coordinators: dict[str, "ActronNeoSystemCoordinator"]
+    system_coordinators: dict[str, "ActronAirSystemCoordinator"]
 
 
-type ActronNeoConfigEntry = ConfigEntry[ActronNeoRuntimeData]
+type ActronAirConfigEntry = ConfigEntry[ActronAirRuntimeData]
 
 AUTH_ERROR_THRESHOLD = 3
 SCAN_INTERVAL = timedelta(seconds=30)
 
 
-class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
+class ActronAirSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
     """System coordinator for Actron Air Neo integration."""
 
     def __init__(
         self,
         hass: HomeAssistant,
-        entry: ActronNeoConfigEntry,
+        entry: ActronAirConfigEntry,
         api: ActronNeoAPI,
         system: ActronAirNeoACSystem,
     ) -> None:
