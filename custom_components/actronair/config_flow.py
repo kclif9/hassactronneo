@@ -31,22 +31,21 @@ class ActronAirConfigFlow(ConfigFlow, domain=DOMAIN):
         if self._api is not None and self._device_code is not None:
             try:
                 token_data = await self._api.poll_for_token(self._device_code)
+                if token_data is None:
+                    errors["base"] = "authorization_pending"
+                else:
+                    user_data = await self._api.get_user_info()
+                    await self.async_set_unique_id(user_data["id"])
+                    self._abort_if_unique_id_configured()
+                    return self.async_create_entry(
+                        title=user_data["email"],
+                        data={
+                            CONF_API_TOKEN: self._api.refresh_token_value,
+                        },
+                    )
             except ActronNeoAuthError as err:
                 _LOGGER.error("Error checking authorization: %s", err)
                 errors["base"] = "oauth2_error"
-
-            if token_data is None:
-                errors["base"] = "authorization_pending"
-            else:
-                user_data = await self._api.get_user_info()
-                await self.async_set_unique_id(user_data["id"])
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=user_data["email"],
-                    data={
-                        CONF_API_TOKEN: self._api.refresh_token_value,
-                    },
-                )
 
         else:
             try:
