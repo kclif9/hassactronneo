@@ -1,4 +1,4 @@
-"""Tests for the Actron Neo coordinator."""
+"""Tests for the Actron Air coordinator."""
 
 from datetime import timedelta
 from unittest.mock import AsyncMock, Mock, patch

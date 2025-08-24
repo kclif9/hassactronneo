@@ -7,13 +7,13 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import CONF_API_TOKEN, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
-from . import ActronNeoConfigEntry
+from . import ActronAirConfigEntry
 
 TO_REDACT = {CONF_API_TOKEN, CONF_PASSWORD, CONF_USERNAME, "email", "id", "serial"}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ActronNeoConfigEntry
+    hass: HomeAssistant, entry: ActronAirConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data

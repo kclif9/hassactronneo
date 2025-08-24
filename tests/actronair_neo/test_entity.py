@@ -1,4 +1,4 @@
-"""Tests for the Actron Neo entities."""
+"""Tests for the Actron Air entities."""
 
 from unittest.mock import Mock, patch
 

@@ -1,4 +1,4 @@
-"""Tests for the Actron Neo climate platform."""
+"""Tests for the Actron Air climate platform."""
 
 from unittest.mock import AsyncMock, Mock, patch
 

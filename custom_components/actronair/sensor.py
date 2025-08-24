@@ -5,7 +5,7 @@ from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import ActronNeoConfigEntry
+from .coordinator import ActronAirConfigEntry
 from .entity import (
     EntitySensor,
     PeripheralBatterySensor,
@@ -19,7 +19,7 @@ from .entity import (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ActronNeoConfigEntry,
+    entry: ActronAirConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Actron Air entities."""
