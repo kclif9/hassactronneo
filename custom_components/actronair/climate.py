@@ -164,6 +164,8 @@ class ActronSystemClimate(BaseClimateEntity):
     @property
     def target_temperature(self) -> float:
         """Return the target temperature."""
+        if self.hvac_mode == HVACMode.HEAT:
+            return self._status.user_aircon_settings.temperature_setpoint_heat_c
         return self._status.user_aircon_settings.temperature_setpoint_cool_c
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
@@ -247,6 +249,8 @@ class ActronZoneClimate(BaseClimateEntity):
     @property
     def target_temperature(self) -> float | None:
         """Return the target temperature."""
+        if self.hvac_mode == HVACMode.HEAT:
+            return self._zone.temperature_setpoint_heat_c
         return self._zone.temperature_setpoint_cool_c
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
