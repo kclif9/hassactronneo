@@ -1,19 +1,12 @@
-"""Coordinator for Actron Air integration."""
+"""Coordinator for Actron Air Neo integration."""
 
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
 
-from actron_neo_api import (
-    ActronAirNeoACSystem,
-    ActronAirNeoStatus,
-    ActronNeoAPI,
-    ActronNeoAPIError,
-    ActronNeoAuthError,
-)
+from actron_neo_api import ActronAirNeoACSystem, ActronAirNeoStatus, ActronNeoAPI
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_API_TOKEN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
@@ -26,66 +19,40 @@ ERROR_UNKNOWN = "unknown_error"
 
 
 @dataclass
-class ActronAirRuntimeData:
-    """Runtime data for the Actron Air integration."""
+class ActronNeoRuntimeData:
+    """Runtime data for the Actron Air Neo integration."""
 
-    api_client: "ActronAirApiClient"
-    system_coordinators: dict[str, "ActronAirSystemCoordinator"]
+    api: ActronNeoAPI
+    system_coordinators: dict[str, "ActronNeoSystemCoordinator"]
 
 
-type ActronAirConfigEntry = ConfigEntry[ActronAirRuntimeData]
+type ActronNeoConfigEntry = ConfigEntry[ActronNeoRuntimeData]
 
 AUTH_ERROR_THRESHOLD = 3
 SCAN_INTERVAL = timedelta(seconds=30)
 
 
-class ActronAirApiClient:
-    """Client for Actron Air API."""
-
-    def __init__(self, hass: HomeAssistant, entry: ActronAirConfigEntry) -> None:
-        """Initialize the client."""
-        self.hass = hass
-        self.entry = entry
-        self.api = ActronNeoAPI(refresh_token=entry.data[CONF_API_TOKEN])
-        self.systems: list[ActronAirNeoACSystem] = []
-
-    async def async_setup(self) -> bool:
-        """Perform initial setup, including refreshing the token."""
-        try:
-            self.systems = await self.api.get_ac_systems()
-            await self.api.update_status()
-        except ActronNeoAuthError:
-            _LOGGER.error(
-                "Authentication error while setting up Actron Air integration"
-            )
-            raise
-        except ActronNeoAPIError as err:
-            _LOGGER.error("API error while setting up Actron Air integration: %s", err)
-            raise
-        return True
-
-
-class ActronAirSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
-    """System coordinator for Actron Air integration."""
+class ActronNeoSystemCoordinator(DataUpdateCoordinator[ActronAirNeoACSystem]):
+    """System coordinator for Actron Air Neo integration."""
 
     def __init__(
         self,
         hass: HomeAssistant,
-        entry: ActronAirConfigEntry,
-        api_client: ActronAirApiClient,
+        entry: ActronNeoConfigEntry,
+        api: ActronNeoAPI,
         system: ActronAirNeoACSystem,
     ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
-            name="Actron Air Status",
+            name="Actron Neo Status",
             update_interval=SCAN_INTERVAL,
             config_entry=entry,
         )
         self.system = system
         self.serial_number = system["serial"]
-        self.api = api_client.api
+        self.api = api
         self.status: ActronAirNeoStatus = self.api.state_manager.get_status(
             self.serial_number
         )
