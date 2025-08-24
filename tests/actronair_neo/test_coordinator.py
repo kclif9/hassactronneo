@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util.dt import utcnow
 
-from custom_components.actronair_neo.coordinator import (
+from custom_components.actronair.coordinator import (
     ActronNeoDataUpdateCoordinator,
     SCAN_INTERVAL,
 )
@@ -21,7 +21,7 @@ from .const import DOMAIN
 @pytest.fixture
 def mock_actron_api():
     """Fixture to mock the ActronNeoAPI."""
-    with patch("custom_components.actronair_neo.coordinator.ActronNeoAPI") as mock_api:
+    with patch("custom_components.actronair.coordinator.ActronNeoAPI") as mock_api:
         mock_api_instance = mock_api.return_value
         mock_api_instance.status = {"12345": {"system_data": "test"}}
         mock_api_instance.update_status = AsyncMock()
