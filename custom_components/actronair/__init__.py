@@ -11,7 +11,7 @@ from .coordinator import (
     ActronAirSystemCoordinator,
 )
 
-PLATFORM = [Platform.CLIMATE]
+PLATFORM = [Platform.CLIMATE, Platform.COVER, Platform.SENSOR, Platform.SWITCH]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ActronAirConfigEntry) -> bool:
