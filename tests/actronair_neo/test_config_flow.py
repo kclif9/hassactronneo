@@ -2,22 +2,22 @@
 
 from unittest.mock import AsyncMock, Mock, patch
 
-from actron_neo_api import ActronNeoAuthError
+from actron_neo_api import ActronAirAuthError
 import pytest
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_TOKEN
 from homeassistant.core import HomeAssistant
 
-from custom_components.actronair.config_flow import ActronNeoConfigFlow
+from custom_components.actronair.config_flow import ActronAirConfigFlow
 from .const import DOMAIN
 
 
 @pytest.fixture
 def mock_actron_api():
-    """Mock the ActronNeoAPI class."""
+    """Mock the ActronAirAPI class."""
     with patch(
-        "custom_components.actronair.config_flow.ActronNeoAPI", autospec=True
+        "custom_components.actronair.config_flow.ActronAirAPI", autospec=True
     ) as mock_api:
         yield mock_api
 
@@ -33,7 +33,7 @@ def mock_hass():
 async def test_user_flow_oauth2_success(mock_hass, mock_actron_api) -> None:
     """Test successful OAuth2 device code flow."""
     mock_api_instance = mock_actron_api.return_value
-    
+
     # Mock device code request
     mock_api_instance.request_device_code = AsyncMock(
         return_value={
@@ -43,21 +43,21 @@ async def test_user_flow_oauth2_success(mock_hass, mock_actron_api) -> None:
             "expires_in": 1800,
         }
     )
-    
+
     # Mock successful token polling
     mock_api_instance.poll_for_token = AsyncMock(
         return_value={"access_token": "test_access_token", "refresh_token": "test_refresh_token"}
     )
-    
+
     # Mock user info
     mock_api_instance.get_user_info = AsyncMock(
         return_value={"id": "test_user_id", "email": "test@example.com"}
     )
-    
+
     mock_api_instance.refresh_token_value = "test_refresh_token"
 
     # Create config flow instance with mocked methods
-    flow = ActronNeoConfigFlow()
+    flow = ActronAirConfigFlow()
     flow.hass = mock_hass
     flow.async_set_unique_id = AsyncMock()
     flow._abort_if_unique_id_configured = Mock()
@@ -87,7 +87,7 @@ async def test_user_flow_oauth2_success(mock_hass, mock_actron_api) -> None:
 async def test_user_flow_oauth2_pending(mock_hass, mock_actron_api) -> None:
     """Test OAuth2 flow when authorization is still pending."""
     mock_api_instance = mock_actron_api.return_value
-    
+
     # Mock device code request
     mock_api_instance.request_device_code = AsyncMock(
         return_value={
@@ -97,12 +97,12 @@ async def test_user_flow_oauth2_pending(mock_hass, mock_actron_api) -> None:
             "expires_in": 1800,
         }
     )
-    
+
     # Mock pending token polling (returns None)
     mock_api_instance.poll_for_token = AsyncMock(return_value=None)
 
     # Create config flow instance
-    flow = ActronNeoConfigFlow()
+    flow = ActronAirConfigFlow()
     flow.hass = mock_hass
     flow.async_show_form = Mock(side_effect=[
         {"type": "form", "step_id": "user", "description_placeholders": {"user_code": "ABC123", "verification_uri": "https://example.com/device", "expires_minutes": "30"}},
@@ -127,14 +127,14 @@ async def test_user_flow_oauth2_pending(mock_hass, mock_actron_api) -> None:
 async def test_user_flow_oauth2_error(mock_hass, mock_actron_api) -> None:
     """Test OAuth2 flow with authentication error during device code request."""
     mock_api_instance = mock_actron_api.return_value
-    
+
     # Mock device code request failure
     mock_api_instance.request_device_code = AsyncMock(
-        side_effect=ActronNeoAuthError("OAuth2 error")
+        side_effect=ActronAirAuthError("OAuth2 error")
     )
 
     # Create config flow instance
-    flow = ActronNeoConfigFlow()
+    flow = ActronAirConfigFlow()
     flow.hass = mock_hass
     flow.async_abort = Mock(return_value={"type": "abort", "reason": "oauth2_error"})
 
@@ -149,7 +149,7 @@ async def test_user_flow_oauth2_error(mock_hass, mock_actron_api) -> None:
 async def test_user_flow_token_polling_error(mock_hass, mock_actron_api) -> None:
     """Test OAuth2 flow with error during token polling."""
     mock_api_instance = mock_actron_api.return_value
-    
+
     # Mock successful device code request
     mock_api_instance.request_device_code = AsyncMock(
         return_value={
@@ -159,14 +159,14 @@ async def test_user_flow_token_polling_error(mock_hass, mock_actron_api) -> None
             "expires_in": 1800,
         }
     )
-    
+
     # Mock token polling failure
     mock_api_instance.poll_for_token = AsyncMock(
-        side_effect=ActronNeoAuthError("Token polling error")
+        side_effect=ActronAirAuthError("Token polling error")
     )
 
     # Create config flow instance
-    flow = ActronNeoConfigFlow()
+    flow = ActronAirConfigFlow()
     flow.hass = mock_hass
     flow.async_show_form = Mock(side_effect=[
         {"type": "form", "step_id": "user", "description_placeholders": {"user_code": "ABC123", "verification_uri": "https://example.com/device", "expires_minutes": "30"}},

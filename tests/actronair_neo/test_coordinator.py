@@ -4,14 +4,14 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from actron_neo_api import ActronNeoAPIError, ActronNeoAuthError
+from actron_neo_api import ActronAirAPIError, ActronAirAuthError
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util.dt import utcnow
 
 from custom_components.actronair.coordinator import (
-    ActronNeoDataUpdateCoordinator,
+    ActronAirDataUpdateCoordinator,
     SCAN_INTERVAL,
 )
 
@@ -20,8 +20,8 @@ from .const import DOMAIN
 
 @pytest.fixture
 def mock_actron_api():
-    """Fixture to mock the ActronNeoAPI."""
-    with patch("custom_components.actronair.coordinator.ActronNeoAPI") as mock_api:
+    """Fixture to mock the ActronAirAPI."""
+    with patch("custom_components.actronair.coordinator.ActronAirAPI") as mock_api:
         mock_api_instance = mock_api.return_value
         mock_api_instance.status = {"12345": {"system_data": "test"}}
         mock_api_instance.update_status = AsyncMock()
@@ -34,7 +34,7 @@ async def test_coordinator_init(hass: HomeAssistant, mock_actron_api):
     entry = Mock()
     entry.entry_id = "test_entry_id"
 
-    coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
+    coordinator = ActronAirDataUpdateCoordinator(hass, entry, "test_pairing_token")
 
     assert coordinator.name == "Actron Neo Status"
     assert coordinator.update_interval == SCAN_INTERVAL
@@ -48,7 +48,7 @@ async def test_coordinator_setup(hass: HomeAssistant, mock_actron_api):
     entry = Mock()
     entry.entry_id = "test_entry_id"
 
-    coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
+    coordinator = ActronAirDataUpdateCoordinator(hass, entry, "test_pairing_token")
     await coordinator._async_setup()
 
     # Verify the token was refreshed during setup
@@ -60,7 +60,7 @@ async def test_coordinator_update_success(hass: HomeAssistant, mock_actron_api):
     entry = Mock()
     entry.entry_id = "test_entry_id"
 
-    coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
+    coordinator = ActronAirDataUpdateCoordinator(hass, entry, "test_pairing_token")
     result = await coordinator._async_update_data()
 
     # Verify the update_status was called
@@ -73,12 +73,12 @@ async def test_coordinator_update_success(hass: HomeAssistant, mock_actron_api):
 
 async def test_coordinator_update_auth_error(hass: HomeAssistant, mock_actron_api):
     """Test coordinator update with authentication error."""
-    mock_actron_api.update_status.side_effect = ActronNeoAuthError
+    mock_actron_api.update_status.side_effect = ActronAirAuthError
 
     entry = Mock()
     entry.entry_id = "test_entry_id"
 
-    coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
+    coordinator = ActronAirDataUpdateCoordinator(hass, entry, "test_pairing_token")
 
     with pytest.raises(UpdateFailed, match="Authentication error"):
         await coordinator._async_update_data()
@@ -88,12 +88,12 @@ async def test_coordinator_update_auth_error(hass: HomeAssistant, mock_actron_ap
 
 async def test_coordinator_update_api_error(hass: HomeAssistant, mock_actron_api):
     """Test coordinator update with API error."""
-    mock_actron_api.update_status.side_effect = ActronNeoAPIError("API Error")
+    mock_actron_api.update_status.side_effect = ActronAirAPIError("API Error")
 
     entry = Mock()
     entry.entry_id = "test_entry_id"
 
-    coordinator = ActronNeoDataUpdateCoordinator(hass, entry, "test_pairing_token")
+    coordinator = ActronAirDataUpdateCoordinator(hass, entry, "test_pairing_token")
 
     with pytest.raises(UpdateFailed, match="Error communicating with API: API Error"):
         await coordinator._async_update_data()
