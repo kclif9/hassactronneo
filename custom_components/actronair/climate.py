@@ -164,8 +164,6 @@ class ActronSystemClimate(BaseClimateEntity):
     @property
     def target_temperature(self) -> float:
         """Return the target temperature."""
-        if self.hvac_mode == HVACMode.HEAT:
-            return self._status.user_aircon_settings.temperature_setpoint_heat_c
         return self._status.user_aircon_settings.temperature_setpoint_cool_c
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
@@ -202,7 +200,7 @@ class ActronZoneClimate(BaseClimateEntity):
         super().__init__(coordinator, zone.title)
         serial_number = coordinator.serial_number
         self._zone_id: int = zone.zone_id
-        self._attr_unique_id: str = f"{self._serial_number}_zone_{zone.zone_id}"
+        self._attr_unique_id: str = f"{serial_number}_zone_{zone.zone_id}"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, self._attr_unique_id)},
             name=zone.title,
@@ -249,8 +247,6 @@ class ActronZoneClimate(BaseClimateEntity):
     @property
     def target_temperature(self) -> float | None:
         """Return the target temperature."""
-        if self.hvac_mode == HVACMode.HEAT:
-            return self._zone.temperature_setpoint_heat_c
         return self._zone.temperature_setpoint_cool_c
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
