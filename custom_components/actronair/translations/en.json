@@ -1,42 +1,26 @@
 {
-  "title": "Actron Air",
   "config": {
-      "abort": {
-          "already_configured": "Account is already configured",
-          "oauth2_error": "Failed to start OAuth2 flow"
-      },
-      "error": {
-          "oauth2_error": "Failed to start OAuth2 flow. Please try again later."
-      },
-      "progress": {
-          "wait_for_authorization": "To authenticate, open the following URL and login at Actron Air:\n{verification_uri}\nIf the code is not automatically copied, paste the following code to authorize the integration:\n\n```{user_code}```\n\n\nThe login attempt will time out after {expires_minutes} minutes."
-      },
-      "step": {
-          "timeout": {
-              "description": "The authorization process timed out. Please try again.",
-              "title": "Authorization timeout"
-          },
-          "user": {
-              "title": "Actron Air OAuth2 Authorization"
-          }
-      }
-  },
-  "options": {
+    "abort": {
+      "already_configured": "Account is already configured",
+      "oauth2_error": "Failed to start OAuth2 flow"
+    },
+    "error": {
+      "oauth2_error": "Failed to start OAuth2 flow. Please try again later."
+    },
+    "progress": {
+      "wait_for_authorization": "To authenticate, open the following URL and login at Actron Air:\n{verification_uri}\nIf the code is not automatically copied, paste the following code to authorize the integration:\n\n```{user_code}```\n\n\nThe login attempt will time out after {expires_minutes} minutes."
+    },
     "step": {
-      "init": {
-        "title": "Actron Air Options",
-        "description": "Configure options for the Actron Air integration.",
-        "data": {
-          "reconfigure": "Reconfigure account credentials"
-        }
+      "connection_error": {
+        "description": "Failed to connect to Actron Air. Please check your internet connection and try again.",
+        "title": "Connection error"
       },
-      "reconfigure": {
-        "title": "Reconfigure Actron Air Account",
-        "description": "Update your Actron Air account credentials.",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        }
+      "timeout": {
+        "description": "The authorization process timed out. Please try again.",
+        "title": "Authorization timeout"
+      },
+      "user": {
+        "title": "Actron Air OAuth2 Authorization"
       }
     }
   },

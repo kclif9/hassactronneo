@@ -1,4 +1,4 @@
-"""Setup config flow for Actron Neo integration."""
+"""Setup config flow for Actron Air integration."""
 
 import asyncio
 from typing import Any
@@ -13,7 +13,7 @@ from .const import _LOGGER, DOMAIN
 
 
 class ActronAirConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Actron Air Neo."""
+    """Handle a config flow for Actron Air."""
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -30,8 +30,8 @@ class ActronAirConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         if self._api is None:
             _LOGGER.debug("Initiating device authorization")
+            self._api = ActronNeoAPI()
             try:
-                self._api = ActronNeoAPI()
                 device_code_response = await self._api.request_device_code()
             except ActronNeoAuthError as err:
                 _LOGGER.error("OAuth2 flow failed: %s", err)
@@ -61,7 +61,11 @@ class ActronAirConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if self.login_task.done():
             _LOGGER.debug("Login task is done, checking results")
-            if self.login_task.exception():
+            if exception := self.login_task.exception():
+                if isinstance(exception, CannotConnect):
+                    return self.async_show_progress_done(
+                        next_step_id="connection_error"
+                    )
                 return self.async_show_progress_done(next_step_id="timeout")
             return self.async_show_progress_done(next_step_id="finish_login")
 
@@ -99,11 +103,23 @@ class ActronAirConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_timeout(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle issues that need transition await from progress step."""
+        if user_input is None:
+            return self.async_show_form(
+                step_id="timeout",
+            )
+        del self.login_task
+        return await self.async_step_user()
+
+    async def async_step_connection_error(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle timeout from progress step."""
+        """Handle connection error from progress step."""
         if user_input is None:
-            return self.async_show_form(step_id="timeout")
+            return self.async_show_form(step_id="connection_error")
 
         # Reset state and try again
         self._api = None
