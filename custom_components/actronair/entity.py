@@ -1,6 +1,6 @@
 """Sensor platform for Actron Air integration."""
 
-from actron_neo_api import ActronAirNeoPeripheral, ActronAirNeoZone
+from actron_neo_api import ActronAirPeripheral, ActronAirZone
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -86,7 +86,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
     def __init__(
         self,
         coordinator: ActronAirSystemCoordinator,
-        zone: ActronAirNeoZone,
+        zone: ActronAirZone,
         translation_key: str,
         state_key: str,
         device_class: SensorDeviceClass,
@@ -110,7 +110,7 @@ class BaseZoneSensor(CoordinatorEntity, Entity):
         )
 
     @property
-    def _zone(self) -> ActronAirNeoZone:
+    def _zone(self) -> ActronAirZone:
         """Get the current zone data from the coordinator."""
         status = self.coordinator.data
         return status.zones.get(self._zone_id)
@@ -174,7 +174,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
     def __init__(
         self,
         coordinator: ActronAirSystemCoordinator,
-        peripheral: ActronAirNeoPeripheral,
+        peripheral: ActronAirPeripheral,
         translation_key: str,
         state_key: str,
         device_class: SensorDeviceClass,
@@ -212,7 +212,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
         )
 
     @property
-    def _peripheral(self) -> ActronAirNeoPeripheral:
+    def _peripheral(self) -> ActronAirPeripheral:
         """Get the current peripheral data from the coordinator."""
         for peripheral in self.coordinator.data.peripherals:
             if peripheral.logical_address == self._peripheral_id:
@@ -243,7 +243,7 @@ class BasePeripheralSensor(CoordinatorEntity, Entity):
 class PeripheralBatterySensor(BasePeripheralSensor):
     """Battery sensor for Actron Air zone."""
 
-    def __init__(self, coordinator: ActronAirSystemCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
+    def __init__(self, coordinator: ActronAirSystemCoordinator, peripheral: ActronAirPeripheral) -> None:
         """Initialize the battery sensor."""
         super().__init__(
             coordinator,
@@ -260,7 +260,7 @@ class PeripheralBatterySensor(BasePeripheralSensor):
 class PeripheralTemperatureSensor(BasePeripheralSensor):
     """Temperature sensor for Actron Air zone."""
 
-    def __init__(self, coordinator: ActronAirSystemCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
+    def __init__(self, coordinator: ActronAirSystemCoordinator, peripheral: ActronAirPeripheral) -> None:
         """Initialize the temperature sensor."""
         super().__init__(
             coordinator,
@@ -275,7 +275,7 @@ class PeripheralTemperatureSensor(BasePeripheralSensor):
 class PeripheralHumiditySensor(BasePeripheralSensor):
     """Humidity sensor for Actron Air zone."""
 
-    def __init__(self, coordinator: ActronAirSystemCoordinator, peripheral: ActronAirNeoPeripheral) -> None:
+    def __init__(self, coordinator: ActronAirSystemCoordinator, peripheral: ActronAirPeripheral) -> None:
         """Initialize the humidity sensor."""
         super().__init__(
             coordinator,
