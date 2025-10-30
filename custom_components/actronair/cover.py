@@ -1,6 +1,6 @@
 """Cover platform for Actron Air integration."""
 
-from actron_neo_api import ActronAirNeoZone
+from actron_neo_api import ActronAirZone
 
 from homeassistant.components.cover import CoverDeviceClass, CoverEntity, CoverEntityFeature
 from homeassistant.core import HomeAssistant
@@ -43,12 +43,12 @@ class ZonePositionSensor(CoordinatorEntity, CoverEntity):
     def __init__(
         self,
         coordinator: ActronAirSystemCoordinator,
-        zone: ActronAirNeoZone,
+        zone: ActronAirZone,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._serial_number: str = coordinator.serial_number
-        self._zone: ActronAirNeoZone = zone
+        self._zone: ActronAirZone = zone
         self._attr_unique_id: str = f"{self._serial_number}_zone_{self._zone.zone_id}_position"
         self._attr_device_info: DeviceInfo = DeviceInfo(
             identifiers={(DOMAIN, f"{self._serial_number}_zone_{self._zone.zone_id}")},
