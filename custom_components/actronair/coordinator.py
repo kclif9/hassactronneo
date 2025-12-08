@@ -22,8 +22,6 @@ from .const import _LOGGER, DOMAIN
 
 SCAN_INTERVAL = timedelta(seconds=30)
 STALE_DEVICE_TIMEOUT = timedelta(minutes=5)
-ERROR_NO_SYSTEMS_FOUND = "no_systems_found"
-ERROR_UNKNOWN = "unknown_error"
 
 
 @dataclass
