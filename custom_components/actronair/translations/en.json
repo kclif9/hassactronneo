@@ -3,7 +3,8 @@
     "abort": {
       "already_configured": "Account is already configured",
       "oauth2_error": "Failed to start authentication flow",
-      "reauth_successful": "Re-authentication was successful"
+      "reauth_successful": "Re-authentication was successful",
+      "wrong_account": "You must reauthenticate with the same Actron Air account that was originally configured."
     },
     "error": {
       "oauth2_error": "Failed to start authentication flow. Please try again later."
@@ -107,6 +108,11 @@
     "confirm": {
       "title": "Confirm repair",
       "description": "Do you want to apply this repair?"
+    }
+  },
+  "exceptions": {
+    "auth_error": {
+      "message": "Authentication failed, please reauthenticate"
     }
   }
 }
