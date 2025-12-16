@@ -14,5 +14,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
+        id: release_drafter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout code
+        if: steps.release_drafter.outputs.tag_name != ''
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update manifest.json version
+        if: steps.release_drafter.outputs.tag_name != ''
+        run: |
+          TAG=${{ steps.release_drafter.outputs.tag_name }}
+          VERSION=${TAG#v}
+          jq --arg version "$VERSION" '.version = $version' custom_components/actronair/manifest.json > manifest.tmp
+          mv manifest.tmp custom_components/actronair/manifest.json
+
+      - name: Create Pull Request
+        if: steps.release_drafter.outputs.tag_name != ''
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Bump version to ${{ steps.release_drafter.outputs.tag_name }}"
+          title: "Bump version to ${{ steps.release_drafter.outputs.tag_name }}"
+          body: "Automated version bump for upcoming release ${{ steps.release_drafter.outputs.tag_name }}"
+          branch: "version-bump-${{ steps.release_drafter.outputs.tag_name }}"
+          delete-branch: true
