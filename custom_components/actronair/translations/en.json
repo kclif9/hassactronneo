@@ -31,6 +31,17 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "clean_filter": {
+        "name": "Clean Filter"
+      },
+      "defrost_mode": {
+        "name": "Defrost Mode"
+      },
+      "compressor_mode": {
+        "name": "Compressor Mode"
+      }
+    },
     "cover": {
       "zone_position": {
         "name": "Zone Position"
@@ -68,6 +79,12 @@
       },
       "compressor_power": {
         "name": "Compressor Power"
+      },
+      "compressor_capacity": {
+        "name": "Compressor Capacity"
+      },
+      "fan_rpm": {
+        "name": "Fan Speed"
       },
       "outdoor_temperature": {
         "name": "Outdoor Temperature"

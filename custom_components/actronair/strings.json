@@ -19,7 +19,7 @@
         "title": "Connection error"
       },
       "reauth_confirm": {
-        "description": "Please select continue to reauthenticate to your Actron Air account.",
+        "description": "Your Actron Air authentication has expired. Select continue to reauthenticate with your Actron Air account. You will be prompted to log in again to restore the connection.",
         "title": "Authentication expired"
       },
       "timeout": {
@@ -32,9 +32,80 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "clean_filter": {
+        "name": "Clean filter"
+      },
+      "defrost_mode": {
+        "name": "Defrost mode"
+      }
+    },
+    "sensor": {
+      "compressor_mode": {
+        "name": "Compressor mode"
+      },
+      "compressor_chasing_temperature": {
+        "name": "Compressor chasing temperature"
+      },
+      "compressor_live_temperature": {
+        "name": "Compressor live temperature"
+      },
+      "compressor_power": {
+        "name": "Compressor power"
+      },
+      "compressor_speed": {
+        "name": "Compressor speed"
+      },
+      "compressor_capacity": {
+        "name": "Compressor capacity"
+      },
+      "fan_rpm": {
+        "name": "Fan speed"
+      },
+      "outdoor_temperature": {
+        "name": "Outdoor temperature"
+      },
+      "peripheral_temperature": {
+        "name": "Temperature"
+      },
+      "peripheral_humidity": {
+        "name": "Humidity"
+      },
+      "peripheral_battery": {
+        "name": "Battery"
+      }
+    },
+    "switch": {
+      "away_mode": {
+        "name": "Away mode"
+      },
+      "continuous_fan": {
+        "name": "Continuous fan"
+      },
+      "quiet_mode": {
+        "name": "Quiet mode"
+      },
+      "turbo_mode": {
+        "name": "Turbo mode"
+      }
+    }
+  },
   "exceptions": {
+    "api_error": {
+      "message": "Failed to communicate with Actron Air device: {error}"
+    },
     "auth_error": {
       "message": "Authentication failed, please reauthenticate"
+    },
+    "setup_connection_error": {
+      "message": "Failed to connect to the Actron Air API"
+    },
+    "temperature_missing": {
+      "message": "Provide a temperature value when adjusting the climate entity."
+    },
+    "update_error": {
+      "message": "An error occurred while retrieving data from the Actron Air API: {error}"
     }
   }
 }

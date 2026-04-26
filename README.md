@@ -3,9 +3,9 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/kclif9/hassactronneo)
 ![GitHub](https://img.shields.io/github/license/kclif9/hassactronneo)
 
-This is a custom integration for Home Assistant to integrate the Actron Air ecosystem. This integration currently supports the Actron Air Neo, but is targeted to support other systems in future. Let me know if you're keen to help test other Actron Air products.
+This is a custom integration for Home Assistant to integrate the Actron Air ecosystem. This integration currently supports both Actron Air Neo and Actron Air Que.
 
-This integration is currently the test version of the integration being submitted to Home Assistant for adding to the core integrations.
+This integration is currently the test version of the integration being submitted to Home Assistant for adding to the core integrations. When HA core is at feature parity, this HACS integration will be retired.
 
 ## Installation
 
@@ -35,66 +35,98 @@ This integration is currently the test version of the integration being submitte
 
 ## Configuration
 
-### Configuration Parameters
-
-The integration requires the following information during setup:
-
-- **Username**: Your Actron Air account username (email address)
-- **Password**: Your Actron Air account password
-
 ### Setup Process
+
+The integration uses an **OAuth2 Device Code** flow for authentication:
 
 1. In the Home Assistant UI, navigate to `Configuration` > `Devices & Services`.
 2. Click the `+ Add Integration` button.
 3. Search for `Actron Air` and select it.
-4. When prompted with the oAuth link, click it and login to your Actron Air account.
-5. The integration will connect to your Actron Air account and discover all your connected devices.
+4. A link and authorization code will be displayed. Open the link and authorize on the Actron Air website.
+5. Once authorized, the integration will automatically complete setup and discover all your connected devices.
 
 ### Configuration Notes
 
 - Each air conditioning unit under your account will be added as a separate device.
+- Reauthentication is supported if your token expires — Home Assistant will prompt you to re-authorize.
+- The integration can also be discovered automatically via DHCP for Neo devices.
 
 ## Features
 
-- **Climate Control**: Control your Actron Air air conditioning units.
-- **Sensors**: Monitor various sensors such as temperature, humidity, and system status.
-- **Switches**: Control switches for continuous fan and zone control.
+- **Climate Control**: Full control of your AC system and individual zones
+- **Sensors**: Compressor diagnostics, outdoor temperature, and wireless peripheral readings
+- **Binary Sensors**: Filter cleaning alerts and defrost mode status
+- **Switches**: Away mode, continuous fan, quiet mode, and turbo mode
+- **Covers**: Read-only zone damper position monitoring
+- **Diagnostics**: Full system and status data export with sensitive fields redacted
 
 ## Supported Devices
 
 This integration supports the following Actron Air devices:
 
 - **Actron Air Neo Series**: All models of the Neo Series air conditioners
+- **Actron Air Que Series**: Que Series air conditioners
 - **Zone Controllers**: Control individual zones within your system
 - **Wall Controllers**: Compatible with wall controller units
-- **Temperature/Humidity Sensors**: Compatible with remote temperature sensors
+- **Wireless Peripherals**: Temperature, humidity, and battery sensors
 
-The integration does not currently support older Actron Air models, or those that are not part of the Neo ecosystem. We are keen to support other systems in future. Let me know if you're keen to help test other Actron Air products.
+The integration does not currently support older Actron Air models, or those that are not part of the Neo/Que ecosystem. We are keen to support other systems in future. Let me know if you're keen to help test other Actron Air products.
 
-## Supported Functions
+## Entities
 
-The integration supports the following functions:
+### Climate
 
-### Climate Controls
-- Turn the air conditioning system on/off
-- Change operating mode (Cool, Heat, Fan, Auto)
-- Set target temperature
-- Change fan speed (Auto, Low, Medium, High)
-- Enable/disable continuous fan operation
-
-### Zone Controls
-- Turn individual zones on/off
-- Set zone-specific temperatures
-- Monitor zone temperature and humidity
+| Entity | Features | Notes |
+|---|---|---|
+| AC System | Target temperature, fan mode, HVAC mode, on/off | HVAC modes: Cool, Heat, Fan, Auto, Dry. Fan modes: Auto, Low, Medium, High. Exposes current temperature and humidity. |
+| Zone (per zone) | Target temperature, on/off | One entity per configured zone. Exposes current temperature and humidity. No independent fan mode. |
 
 ### Sensors
-- System temperature sensors
-- Zone temperature sensors
-- System humidity sensors
-- Zone humidity sensors
-- Battery levels for wireless components
-- System status indicators
-- Fan speed indicators
+
+**System-level** (on the AC device):
+
+| Sensor | Device Class | Unit | Enabled by Default |
+|---|---|---|---|
+| Outdoor temperature | Temperature | °C | Yes |
+| Compressor mode | — | — | No |
+| Compressor chasing temperature | Temperature | °C | No |
+| Compressor live temperature | Temperature | °C | No |
+| Compressor power | Power | W | No |
+| Compressor speed | — | — | No |
+| Compressor capacity | — | % | No |
+| Fan speed | — | RPM | No |
+
+**Wireless peripherals** (per sensor device):
+
+| Sensor | Device Class | Unit |
+|---|---|---|
+| Temperature | Temperature | °C |
+| Humidity | Humidity | % |
+| Battery | Battery | % |
+
+### Binary Sensors
+
+| Sensor | Device Class | Category |
+|---|---|---|
+| Clean filter | Problem | Diagnostic |
+| Defrost mode | Running | Diagnostic |
+
+### Switches
+
+All switches are configuration entities.
+
+| Switch | Condition |
+|---|---|
+| Away mode | Always available |
+| Continuous fan | Always available |
+| Quiet mode | Always available |
+| Turbo mode | Only if supported by hardware |
+
+### Covers
+
+| Entity | Device Class | Notes |
+|---|---|---|
+| Zone damper position | Damper | Read-only. One per zone. Reports current position and open/closed state. |
 
 ## Data Updates
 
@@ -185,6 +217,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
 ### Common Issues
 
 #### Authentication Errors
+
 - **Symptom**: Unable to authenticate, entities show as unavailable
 - **Possible Causes**:
   - Incorrect username or password
@@ -196,6 +229,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
   - Wait a few minutes if you suspect a rate limit or lockout
 
 #### Connection Errors
+
 - **Symptom**: Entities unavailable, cannot control system
 - **Possible Causes**:
   - Actron Air cloud service is down
@@ -207,6 +241,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
   - Check if the official Actron Air app can connect to your system
 
 #### Zone Control Issues
+
 - **Symptom**: Cannot control individual zones
 - **Possible Causes**:
   - Zone controller is offline
@@ -217,6 +252,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
   - Check that zone controllers have power
 
 #### API Errors
+
 - **Symptom**: Errors in logs mentioning API issues, "too many requests", or timeouts
 - **Possible Causes**:
   - Rate limiting by the Actron Air cloud service
@@ -227,6 +263,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
   - Check the GitHub repository for known issues
 
 #### System Functionality Limitations
+
 - **Symptom**: Cannot access certain features available in the official app
 - **Solution**: Some advanced features are only available through the official app. Use the app for those functions.
 
@@ -239,6 +276,7 @@ To check your logs for troubleshooting:
 3. Look for error messages that can help identify the issue
 
 If you need further assistance, please open an issue on the [GitHub repository](https://github.com/kclif9/hassactronneo/issues) with the following information:
+
 - Description of the problem
 - Relevant log entries
 - Home Assistant version

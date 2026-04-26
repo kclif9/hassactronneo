@@ -2,14 +2,18 @@
 
 from actron_neo_api import ActronAirZone
 
-from homeassistant.components.cover import CoverDeviceClass, CoverEntity, CoverEntityFeature
+from homeassistant.components.cover import (
+    CoverDeviceClass,
+    CoverEntity,
+    CoverEntityFeature,
+)
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
 from .coordinator import ActronAirConfigEntry, ActronAirSystemCoordinator
+from .entity import ActronAirZoneEntity
+
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -19,52 +23,36 @@ async def async_setup_entry(
 ) -> None:
     """Set up Actron Air cover entities."""
     system_coordinators = entry.runtime_data.system_coordinators
-    entities: list[CoverEntity] = []
-
-    for coordinator in system_coordinators.values():
-        status = coordinator.data
-        entities.extend(
-            ZonePositionSensor(coordinator, zone)
-            for zone in status.remote_zone_info
-            if zone.exists
-        )
-
-    async_add_entities(entities)
+    async_add_entities(
+        ActronAirZoneDamper(coordinator, zone)
+        for coordinator in system_coordinators.values()
+        for zone in coordinator.data.remote_zone_info
+        if zone.exists
+    )
 
 
-class ZonePositionSensor(CoordinatorEntity, CoverEntity):
-    """Position sensor for Actron Air zone."""
+class ActronAirZoneDamper(ActronAirZoneEntity, CoverEntity):
+    """Damper position cover for an Actron Air zone."""
 
-    _attr_has_entity_name: bool = True
-    _attr_supported_features: CoverEntityFeature = None
-    _attr_translation_key: str = "zone_position"
-    _attr_device_class: CoverDeviceClass = CoverDeviceClass.DAMPER
+    _attr_device_class = CoverDeviceClass.DAMPER
+    _attr_supported_features = CoverEntityFeature(0)
+    _attr_translation_key = "zone_position"
 
     def __init__(
         self,
         coordinator: ActronAirSystemCoordinator,
         zone: ActronAirZone,
     ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._serial_number: str = coordinator.serial_number
-        self._zone: ActronAirZone = zone
-        self._attr_unique_id: str = f"{self._serial_number}_zone_{self._zone.zone_id}_position"
-        self._attr_device_info: DeviceInfo = DeviceInfo(
-            identifiers={(DOMAIN, f"{self._serial_number}_zone_{self._zone.zone_id}")},
-        )
+        """Initialize the cover."""
+        super().__init__(coordinator, zone)
+        self._attr_unique_id = f"{self._zone_identifier}_{self._attr_translation_key}"
 
     @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return not self.coordinator.is_device_stale()
-
-    @property
-    def current_cover_position(self) -> str | None:
-        """Return the state of the sensor."""
+    def current_cover_position(self) -> int | None:
+        """Return the current position of the damper."""
         return self._zone.zone_position
 
     @property
     def is_closed(self) -> bool:
-        """Return True if the cover is closed."""
+        """Return True if the damper is closed."""
         return self.current_cover_position == 0

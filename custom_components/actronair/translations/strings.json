@@ -1,125 +1,102 @@
 {
   "config": {
-    "step": {
-      "user": {
-        "title": "Actron Air OAuth2 Authorization"
-      },
-      "timeout": {
-        "title": "Authorization timeout",
-        "description": "The authorization process timed out. Please try again.",
-        "data": {}
-      }
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
+      "oauth2_error": "Failed to start authentication flow",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
+      "wrong_account": "You must reauthenticate with the same Actron Air account that was originally configured."
+    },
+    "error": {
+      "oauth2_error": "Failed to start authentication flow. Please try again later."
     },
     "progress": {
       "wait_for_authorization": "To authenticate, open the following URL and login at Actron Air:\n{verification_uri}\nIf the code is not automatically copied, paste the following code to authorize the integration:\n\n```{user_code}```\n\n\nThe login attempt will time out after {expires_minutes} minutes."
     },
-    "error": {
-      "oauth2_error": "Failed to start OAuth2 flow. Please try again later."
-    },
-    "abort": {
-      "oauth2_error": "Failed to start OAuth2 flow",
-      "already_configured": "Account is already configured"
-    }
-  },
-  "device_automation": {
-    "action_type": {
-      "turn_on": "Turn on Actron Air device",
-      "turn_off": "Turn off Actron Air device"
-    }
-  },
-  "options": {
     "step": {
-      "init": {
-        "data": {
-          "reconfigure": "Reconfigure account credentials"
-        },
-        "description": "Configure options for the Actron Air integration.",
-        "title": "Actron Air Options"
+      "connection_error": {
+        "data": {},
+        "description": "Failed to connect to Actron Air. Please check your internet connection and try again.",
+        "title": "Connection error"
       },
-      "reconfigure": {
-        "data": {
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
-        },
-        "description": "Update your Actron Air account credentials.",
-        "title": "Reconfigure Actron Air Account"
+      "reauth_confirm": {
+        "description": "Your Actron Air authentication has expired. Select continue to reauthenticate with your Actron Air account. You will be prompted to log in again to restore the connection.",
+        "title": "Authentication expired"
+      },
+      "timeout": {
+        "data": {},
+        "description": "The authentication process timed out. Please try again.",
+        "title": "Authentication timeout"
+      },
+      "user": {
+        "title": "Actron Air Authentication"
       }
     }
   },
   "entity": {
-    "climate": {
-      "ac_unit": {
-        "name": "AC Unit {serial_number}"
+    "binary_sensor": {
+      "clean_filter": {
+        "name": "Clean filter"
       },
-      "ac_zone": {
-        "name": "AC Zone"
+      "defrost_mode": {
+        "name": "Defrost mode"
       }
     },
     "sensor": {
-      "clean_filter": {
-        "name": "Clean Filter"
-      },
-      "defrost_mode": {
-        "name": "Defrost Mode"
+      "compressor_mode": {
+        "name": "Compressor mode"
       },
       "compressor_chasing_temperature": {
-        "name": "Compressor Chasing Temperature"
+        "name": "Compressor chasing temperature"
       },
       "compressor_live_temperature": {
-        "name": "Compressor Live Temperature"
-      },
-      "compressor_mode": {
-        "name": "Compressor Mode"
-      },
-      "system_on": {
-        "name": "System On"
-      },
-      "compressor_speed": {
-        "name": "Compressor Speed"
+        "name": "Compressor live temperature"
       },
       "compressor_power": {
-        "name": "Compressor Power"
+        "name": "Compressor power"
+      },
+      "compressor_speed": {
+        "name": "Compressor speed"
+      },
+      "compressor_capacity": {
+        "name": "Compressor capacity"
+      },
+      "fan_rpm": {
+        "name": "Fan speed"
       },
       "outdoor_temperature": {
-        "name": "Outdoor Temperature"
-      },
-      "humidity": {
-        "name": "Humidity"
-      },
-      "temperature": {
-        "name": "Temperature"
-      },
-      "position": {
-        "name": "Position"
-      },
-      "battery": {
-        "name": "Battery"
+        "name": "Outdoor temperature"
       }
     },
     "switch": {
       "away_mode": {
-        "name": "Away Mode"
+        "name": "Away mode"
       },
       "continuous_fan": {
-        "name": "Continuous Fan"
+        "name": "Continuous fan"
       },
       "quiet_mode": {
-        "name": "Quiet Mode"
+        "name": "Quiet mode"
       },
       "turbo_mode": {
-        "name": "Turbo Mode"
+        "name": "Turbo mode"
       }
     }
   },
-  "issues": {
-    "stale_auth": {
-      "title": "Actron Air authentication expired",
-      "description": "The authentication for your {name} Actron Air account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air account."
+  "exceptions": {
+    "api_error": {
+      "message": "Failed to communicate with Actron Air device: {error}"
     },
-    "confirm": {
-      "title": "Confirm repair",
-      "description": "Do you want to apply this repair?"
+    "auth_error": {
+      "message": "Authentication failed, please reauthenticate"
+    },
+    "setup_connection_error": {
+      "message": "Failed to connect to the Actron Air API"
+    },
+    "temperature_missing": {
+      "message": "Provide a temperature value when adjusting the climate entity."
+    },
+    "update_error": {
+      "message": "An error occurred while retrieving data from the Actron Air API: {error}"
     }
-  },
-  "title": "Actron Air"
+  }
 }
