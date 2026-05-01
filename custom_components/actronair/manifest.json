@@ -13,10 +13,10 @@
     }
   ],
   "documentation": "https://github.com/kclif9/actron-neo",
-  "iot_class": "cloud_polling",
+  "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/kclif9/hassactronneo/issues",
   "requirements": [
-    "actron-neo-api==0.5.6"
+    "actron-neo-api==0.5.7"
   ],
   "version": "0.10.11"
 }
