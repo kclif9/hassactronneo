@@ -33,6 +33,7 @@ class ActronAirRuntimeData:
 
     api: ActronAirAPI
     system_coordinators: dict[str, ActronAirSystemCoordinator]
+    push_updates_enabled: bool
 
 
 type ActronAirConfigEntry = ConfigEntry[ActronAirRuntimeData]
@@ -47,25 +48,30 @@ class ActronAirSystemCoordinator(DataUpdateCoordinator[ActronAirStatus]):
         entry: ActronAirConfigEntry,
         api: ActronAirAPI,
         system: ActronAirSystemInfo,
+        push_updates_enabled: bool,
     ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name="Actron Air Status",
-            update_interval=SCAN_INTERVAL,
+            update_interval=None if push_updates_enabled else SCAN_INTERVAL,
             config_entry=entry,
         )
         self.system = system
         self.serial_number = system.serial
         self.api = api
+        self.push_updates_enabled = push_updates_enabled
         self.status = self.api.state_manager.get_status(self.serial_number)
+        if self.status is None:
+            raise ValueError(f"Status not available for system {self.serial_number}")
+        self.data = self.status
         self.last_seen = dt_util.utcnow()
 
     async def _async_update_data(self) -> ActronAirStatus:
         """Fetch updates and merge incremental changes into the full state."""
         try:
-            await self.api.update_status()
+            await self.api.update_status(self.serial_number)
         except ActronAirAuthError as err:
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN,
@@ -88,6 +94,14 @@ class ActronAirSystemCoordinator(DataUpdateCoordinator[ActronAirStatus]):
         self.status = status
         self.last_seen = dt_util.utcnow()
         return self.status
+
+    def handle_push_update(self, status: ActronAirStatus) -> None:
+        """Handle a realtime update callback from the API client."""
+        if status.serial_number != self.serial_number:
+            return
+        self.status = status
+        self.last_seen = dt_util.utcnow()
+        self.async_set_updated_data(status)
 
     def is_device_stale(self) -> bool:
         """Check if a device is stale (not seen for a while)."""
