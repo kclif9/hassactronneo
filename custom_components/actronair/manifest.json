@@ -18,5 +18,5 @@
   "requirements": [
     "actron-neo-api==0.5.7"
   ],
-  "version": "0.10.11"
+  "version": "0.10.12"
 }
