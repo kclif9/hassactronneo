@@ -16,7 +16,7 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/kclif9/hassactronneo/issues",
   "requirements": [
-    "actron-neo-api==0.5.7"
+    "actron-neo-api==0.5.11"
   ],
   "version": "0.10.12"
 }
