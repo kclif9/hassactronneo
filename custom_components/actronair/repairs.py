@@ -68,3 +68,15 @@ async def async_register_stale_auth_issue(
         translation_placeholders={"name": entry.title},
         data={"domain": DOMAIN, "issue_type": "stale_auth", "entry_id": entry.entry_id},
     )
+
+
+async def async_register_migration_issue(hass: HomeAssistant) -> None:
+    """Register the migration issue for the Home Assistant Core integration."""
+    ir.async_create_issue(
+        hass,
+        domain=DOMAIN,
+        issue_id="migrate_to_core",
+        is_fixable=False,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="migrate_to_core",
+    )

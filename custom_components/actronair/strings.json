@@ -91,6 +91,12 @@
       }
     }
   },
+  "issues": {
+    "migrate_to_core": {
+      "title": "Migrate Actron Air to Home Assistant Core",
+      "description": "This custom Actron Air integration is no longer maintained. Remove it from HACS and configure the official [Actron Air integration](/integrations/actron_air/) built into Home Assistant."
+    }
+  },
   "exceptions": {
     "api_error": {
       "message": "Failed to communicate with Actron Air device: {error}"

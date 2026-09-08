@@ -118,6 +118,10 @@
     }
   },
   "issues": {
+    "migrate_to_core": {
+      "title": "Migrate Actron Air to Home Assistant Core",
+      "description": "This custom Actron Air integration is no longer maintained. Remove it from HACS and configure the official [Actron Air integration](/integrations/actron_air/) built into Home Assistant."
+    },
     "stale_auth": {
       "title": "Actron Air authentication expired",
       "description": "The authentication for your {name} Actron Air account has expired. This can happen if you changed your password or the token has expired.\n\nPlease click the 'Fix' button below to re-authenticate with your Actron Air account."
