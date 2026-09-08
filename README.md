@@ -3,37 +3,25 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/kclif9/hassactronneo)
 ![GitHub](https://img.shields.io/github/license/kclif9/hassactronneo)
 
-This is a custom integration for Home Assistant to integrate the Actron Air ecosystem. This integration currently supports both Actron Air Neo and Actron Air Que.
+This repository contains the legacy custom Actron Air integration for Home Assistant.
 
-This integration is currently the test version of the integration being submitted to Home Assistant for adding to the core integrations. When HA core is at feature parity, this HACS integration will be retired.
+> [!WARNING]
+> This custom integration is deprecated and no longer maintained.
+>
+> Actron Air support is now built into Home Assistant. Please migrate to the
+> [official Home Assistant integration](https://www.home-assistant.io/integrations/actron_air/)
+> and remove this custom integration from HACS.
+>
+> No further bug fixes or feature updates will be made here.
 
-## Installation
+## Migration
 
-### Prerequisites
+Remove this custom integration from HACS and configure the official Home Assistant
+[Actron Air integration](https://www.home-assistant.io/integrations/actron_air/).
+The remaining sections describe the legacy integration and are provided for
+reference only.
 
-- Home Assistant (version 2023.3.0 or later recommended)
-- An Actron Air air conditioning system
-- A valid Actron Air account (username and password)
-- Your Actron Air system must be connected to the internet
-
-### HACS (Home Assistant Community Store)
-
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kclif9&repository=hassactronneo)
-
-1. Ensure that [HACS](https://hacs.xyz/) is installed.
-2. Go to HACS > Integrations.
-3. Click on the three dots in the top right corner and select "Custom repositories".
-4. Add the repository URL: `https://github.com/kclif9/hassactronneo` and select "Integration".
-5. Find "Actron Air" in the list and click "Install".
-6. Restart Home Assistant after installation.
-
-### Manual Installation
-
-1. Download the `custom_components` directory from the [latest release](https://github.com/kclif9/hassactronneo/releases/latest).
-2. Copy the `custom_components/actronair` directory to your Home Assistant configuration directory (typically `/config/custom_components/`).
-3. Restart Home Assistant after installation.
-
-## Configuration
+## Legacy Configuration
 
 ### Setup Process
 
@@ -51,7 +39,7 @@ The integration uses an **OAuth2 Device Code** flow for authentication:
 - Reauthentication is supported if your token expires — Home Assistant will prompt you to re-authorize.
 - The integration can also be discovered automatically via DHCP for Neo devices.
 
-## Features
+## Legacy Features
 
 - **Climate Control**: Full control of your AC system and individual zones
 - **Sensors**: Compressor diagnostics, outdoor temperature, and wireless peripheral readings
@@ -60,9 +48,9 @@ The integration uses an **OAuth2 Device Code** flow for authentication:
 - **Covers**: Read-only zone damper position monitoring
 - **Diagnostics**: Full system and status data export with sensitive fields redacted
 
-## Supported Devices
+## Legacy Supported Devices
 
-This integration supports the following Actron Air devices:
+The legacy integration supported the following Actron Air devices:
 
 - **Actron Air Neo Series**: All models of the Neo Series air conditioners
 - **Actron Air Que Series**: Que Series air conditioners
@@ -70,7 +58,7 @@ This integration supports the following Actron Air devices:
 - **Wall Controllers**: Compatible with wall controller units
 - **Wireless Peripherals**: Temperature, humidity, and battery sensors
 
-The integration does not currently support older Actron Air models, or those that are not part of the Neo/Que ecosystem. We are keen to support other systems in future. Let me know if you're keen to help test other Actron Air products.
+The integration does not currently support older Actron Air models, or those that are not part of the Neo/Que ecosystem. Other systems were not supported by the legacy integration.
 
 ## Entities
 
@@ -128,9 +116,9 @@ All switches are configuration entities.
 |---|---|---|
 | Zone damper position | Damper | Read-only. One per zone. Reports current position and open/closed state. |
 
-## Data Updates
+## Legacy Data Updates
 
-The integration updates data using the following approach:
+The legacy integration updates data using the following approach:
 
 - **Update Frequency**: Data is polled from the Actron Air cloud service every 30 seconds.
 - **Update Method**: The integration uses a cloud polling approach as specified by the `iot_class: cloud_polling` in the integration manifest.
@@ -138,7 +126,7 @@ The integration updates data using the following approach:
 - **Token Refresh**: Authentication tokens are automatically refreshed when they expire.
 - **API Limits**: The integration respects the API rate limits of the Actron Air cloud service to prevent lockouts.
 
-## Example Use Cases
+## Legacy Example Use Cases
 
 Here are some common use cases for the Actron Air integration:
 
@@ -201,18 +189,19 @@ automation:
         entity_id: switch.neo_continuous_fan
 ```
 
-## Known Limitations
+## Legacy Known Limitations
 
-The integration has the following known limitations:
+The legacy integration has the following known limitations:
 
 - **Cloud Dependency**: The integration relies on the Actron Air cloud service, so internet connectivity is required for operation.
 - **Zone Configuration**: Zone names and configurations are determined controller and cannot be changed from Home Assistant.
 - **System-Level Settings**: Some advanced system-level settings can only be modified through the wall controller.
 - **Firmware Updates**: The integration does not support triggering firmware updates, which must be done through the wall controller.
 
-## Troubleshooting
+## Legacy Troubleshooting
 
-If you encounter issues, please check the Home Assistant logs for any error messages related to the `actronair` integration.
+No support is provided for this legacy integration. Existing users can check the
+Home Assistant logs for error messages related to the `actronair` integration.
 
 ### Common Issues
 
@@ -259,7 +248,7 @@ If you encounter issues, please check the Home Assistant logs for any error mess
   - API changes by Actron Air
 - **Solutions**:
   - Reduce the number of automations that control the system
-  - Update to the latest version of the integration
+  - Migrate to the official Home Assistant integration
   - Check the GitHub repository for known issues
 
 #### System Functionality Limitations
@@ -275,14 +264,9 @@ To check your logs for troubleshooting:
 2. Filter for "actronair" to see messages specific to this integration
 3. Look for error messages that can help identify the issue
 
-If you need further assistance, please open an issue on the [GitHub repository](https://github.com/kclif9/hassactronneo/issues) with the following information:
+For new issues, use the official Home Assistant integration's support channels.
 
-- Description of the problem
-- Relevant log entries
-- Home Assistant version
-- Integration version
-
-## Removing the Integration
+## Removing the Legacy Integration
 
 1. Go to `Configuration` > `Devices & Services`.
 2. Find the Actron Air integration card and click on it.
@@ -291,12 +275,7 @@ If you need further assistance, please open an issue on the [GitHub repository](
 
 ## Contributing
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes.
-4. Commit your changes (`git commit -am 'Add new feature'`).
-5. Push to the branch (`git push origin feature-branch`).
-6. Create a new Pull Request.
+This repository is no longer accepting feature or bug-fix contributions.
 
 ## License
 
