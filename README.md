@@ -8,7 +8,7 @@ This repository contains the legacy custom Actron Air integration for Home Assis
 > [!WARNING]
 > This custom integration is deprecated and no longer maintained.
 >
-> Actron Air support is now built into Home Assistant. Please migrate to the
+> Actron Air support is now built into Home Assistant 2026.9. Please migrate to the
 > [official Home Assistant integration](https://www.home-assistant.io/integrations/actron_air/)
 > and remove this custom integration from HACS.
 >
@@ -57,8 +57,6 @@ The legacy integration supported the following Actron Air devices:
 - **Zone Controllers**: Control individual zones within your system
 - **Wall Controllers**: Compatible with wall controller units
 - **Wireless Peripherals**: Temperature, humidity, and battery sensors
-
-The integration does not currently support older Actron Air models, or those that are not part of the Neo/Que ecosystem. Other systems were not supported by the legacy integration.
 
 ## Entities
 

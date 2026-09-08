@@ -13,12 +13,15 @@ from .coordinator import (
     ActronAirRuntimeData,
     ActronAirSystemCoordinator,
 )
+from .repairs import async_register_migration_issue
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.CLIMATE, Platform.COVER, Platform.SENSOR, Platform.SWITCH]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ActronAirConfigEntry) -> bool:
     """Set up Actron Air integration from a config entry."""
+
+    await async_register_migration_issue(hass)
 
     api = ActronAirAPI(refresh_token=entry.data[CONF_API_TOKEN])
     systems: list[ActronAirSystemInfo] = []
